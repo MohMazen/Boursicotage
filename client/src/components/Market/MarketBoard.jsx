@@ -61,7 +61,7 @@ function MarketBoard() {
                 <td>{stock.price.toFixed(2)} €</td>
                 <td className={getChangeClass(stock)}>
                   {getChangeSymbol(stock)} 
-                  {((stock.price - stock.previousPrice) / stock.previousPrice * 100).toFixed(2)}%
+                  {stock.previousPrice > 0 ? ((stock.price - stock.previousPrice) / stock.previousPrice * 100).toFixed(2) : '0.00'}%
                 </td>
                 <td>{stock.trend}</td>
               </tr>

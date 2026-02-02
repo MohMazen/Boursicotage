@@ -1,6 +1,10 @@
 /**
  * Socket.IO Handler
  * Gère les connexions WebSocket et la communication temps réel
+ * 
+ * TODO: Actuellement utilise une instance unique de MarketEngine partagée.
+ * Pour supporter plusieurs parties simultanées, il faudra créer une instance
+ * de MarketEngine par partie et gérer leur cycle de vie.
  */
 
 const MarketEngine = require('../services/MarketEngine');

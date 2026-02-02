@@ -1,6 +1,9 @@
 /**
  * EventEngine - Générateur d'événements marché aléatoires
  * Génère des événements qui impactent le marché (krach, bull run, etc.)
+ * 
+ * TODO: Ajouter une synchronisation pour éviter les race conditions
+ * lors de la modification simultanée des stocks par le MarketEngine
  */
 
 class EventEngine {

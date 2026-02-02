@@ -6,8 +6,8 @@
 class MarketEngine {
   constructor() {
     this.stocks = [];
-    this.history = new Map();
     this.isRunning = false;
+    this.idCounter = 0; // Counter for unique IDs
   }
 
   /**
@@ -89,10 +89,11 @@ class MarketEngine {
   }
 
   /**
-   * Génère un ID unique
+   * Génère un ID unique avec counter
    */
   generateId() {
-    return `STOCK_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    this.idCounter++;
+    return `STOCK_${Date.now()}_${this.idCounter}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**

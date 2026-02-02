@@ -95,7 +95,7 @@ function Portfolio({ player, stocks }) {
           type="number" 
           min="1" 
           value={quantity} 
-          onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+          onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
           placeholder="Quantité"
         />
         
