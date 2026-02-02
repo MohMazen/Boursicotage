@@ -23,7 +23,7 @@ const createGame = (req, res) => {
       return res.status(400).json({ error: 'L\'ID du créateur est requis' });
     }
     
-    const id = `GAME_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `GAME_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const game = new Game(id, name, createdBy);
     
     games.set(id, game);

@@ -19,7 +19,7 @@ const createPlayer = (req, res) => {
       return res.status(400).json({ error: 'Le nom est requis' });
     }
     
-    const id = `PLAYER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `PLAYER_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const player = new Player(id, name);
     
     players.set(id, player);

@@ -39,7 +39,7 @@ function Home() {
         <p className="tagline">Simulation Boursière Multijoueur Temps Réel</p>
         
         <div className="description">
-          <p>💰 Gérez votre portefeuille d&apos;actions virtuelles</p>
+          <p>💰 Gérez votre portefeuille d&rsquo;actions virtuelles</p>
           <p>📈 Profitez des fluctuations du marché</p>
           <p>⏱️ Attention : la partie peut se terminer à tout moment !</p>
           <p>🏆 Devenez le plus riche pour gagner</p>

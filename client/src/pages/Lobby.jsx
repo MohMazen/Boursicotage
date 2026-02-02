@@ -81,9 +81,9 @@ function Lobby() {
   if (!player) {
     return (
       <div className="lobby">
-        <p>Vous devez créer un joueur d&apos;abord.</p>
+        <p>Vous devez créer un joueur d&rsquo;abord.</p>
         <button onClick={() => window.location.href = '/'}>
-          Retour à l&apos;accueil
+          Retour à l&rsquo;accueil
         </button>
       </div>
     );
