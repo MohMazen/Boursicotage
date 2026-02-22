@@ -1,12 +1,16 @@
+let compteurId = 1001;
 class Player {
     constructor(name, id) {
-        this.id = id;
-        this.name = name;
+        this.id    = compteurId++;
+        this.name  = name;
         this.solde = 10000;
 
-        // { actionId: { action: obj, quantite: number } }
+        // Structure : { actionId: { action: obj, quantite: number } }
         this.portefeuille = {};
     }
+
+    // ─── Gestion du solde ────────────────────────────────────────────────────
+
     crediterCompte(montant) {
         this.solde += montant;
     }
@@ -17,18 +21,19 @@ class Player {
         return true;
     }
 
-    acheterAction(action, quantite) {
-       const coutTotal = action.prix * quantite;
+    getSolde() {
+        return this.solde;
+    }
 
-       if (!this.debiterCompte(coutTotal)) {
-        return false; // pas assez d'argent
-      } 
+    // Transactions
+
+    acheterAction(action, quantite) {
+        const coutTotal = parseFloat((action.prix * quantite).toFixed(2));
+
+        if (!this.debiterCompte(coutTotal)) return false;
 
         if (!this.portefeuille[action.id]) {
-            this.portefeuille[action.id] = {
-                action,
-                quantite: 0
-            };
+            this.portefeuille[action.id] = { action, quantite: 0 };
         }
 
         this.portefeuille[action.id].quantite += quantite;
@@ -40,8 +45,8 @@ class Player {
 
         if (!ligne || ligne.quantite < quantite) return false;
 
-        const gainTotal = action.prix * quantite;
-         this.crediterCompte(gainTotal); ;
+        const gainTotal = parseFloat((action.prix * quantite).toFixed(2));
+        this.crediterCompte(gainTotal);
 
         ligne.quantite -= quantite;
 
@@ -52,6 +57,7 @@ class Player {
         return true;
     }
 
+    
     getPatrimoine() {
         let patrimoine = this.solde;
 
@@ -60,17 +66,24 @@ class Player {
             patrimoine += ligne.quantite * ligne.action.prix;
         }
 
-        return patrimoine;
+        return parseFloat(patrimoine.toFixed(2));
     }
 
-    peutAcheter(action, quantite) {
-        return this.solde >= action.prix * quantite;
-    }
+    // Retourne le portefeuille avec les valeurs actualisées
+    getPortefeuilleDetail() {
+        const detail = {};
 
-    
+        for (const id in this.portefeuille) {
+            const ligne = this.portefeuille[id];
+            detail[id] = {
+                nom:          ligne.action.nom,
+                quantite:     ligne.quantite,
+                prixActuel:   ligne.action.prix,
+                valeurTotale: parseFloat((ligne.quantite * ligne.action.prix).toFixed(2))
+            };
+        }
 
-    getSolde() {
-        return this.solde;
+        return detail;
     }
 }
 
