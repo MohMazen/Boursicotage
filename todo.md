@@ -1,49 +1,49 @@
-## ⚙️ Dev Backend 2 (branche: `back-dev2`)
+# 🚀 Dev Backend 1 (branche: `back-dev1`)
 
 ### Phase 1 : Organisation
-- [ ] Mettre les fichiers backend dans `back-dev2`
+- [ ] Mettre les fichiers backend dans `back-dev1`
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 2 : Moteur de marché
-- [ ] Créer MarketEngine.js (fluctuations actions)
+### Phase 2 : Controllers
+- [ ] Créer controllers (playerController, gameController)
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 3 : Timer de jeu
-- [ ] Créer GameTimer.js (timer parties)
+### Phase 3 : Modèles
+- [ ] Créer models (Player.js, Game.js)
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 4 : Événements
-- [ ] Créer EventEngine.js (événements aléatoires)
+### Phase 4 : Routes API
+- [ ] Créer routes API (/players, /games)
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 5 : Transactions
-- [ ] Créer transactionController.js
+### Phase 5 : Authentification
+- [ ] Implémenter authentification
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 6 : WebSocket
-- [ ] Implémenter Socket.IO handler
+### Phase 6 : Configuration
+- [ ] Configurer CORS et middleware
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 7 : Logique métier
-- [ ] Logique achat/vente actions
+### Phase 7 : Tests
+- [ ] Tests API endpoints
   - [ ] 
   - [ ] 
   - [ ] 
 
-### Phase 8 : Tests
-- [ ] Tests moteur de jeu
+### Phase 8 : Documentation
+- [ ] Documentation API
   - [ ] 
   - [ ] 
   - [ ] 
