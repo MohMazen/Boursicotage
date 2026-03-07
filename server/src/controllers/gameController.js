@@ -42,6 +42,6 @@ export const terminerPartie = (req, res) => {
     res.json({ message: "Partie terminée manuellement", classement: game.calculerClassement() });
 };
 
-export const getActions          = (req, res) => res.json({ actions: game.market.getAllStocks() });
+export const getActions          = (req, res) => res.json({ actions: game.market.getAllActions() });
 export const getDernierEvenement = (req, res) => res.json({ evenement: game.market.getDernierEvenement() });
 
