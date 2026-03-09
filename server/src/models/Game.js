@@ -84,6 +84,8 @@ class Game {
 
         const player = this.players.find(p => p.id === playerId);
         if (!player) return { success: false, message: "Joueur introuvable" };
+        //  Vérification du gel
+        if (player.estGele) return { success: false, message: "Tu es gelé — impossible d'acheter pendant 45 secondes" };
 
         const action = this.market.getStock(actionId);
         if (!action) return { success: false, message: "Action introuvable" };
@@ -107,6 +109,8 @@ class Game {
 
         const player = this.players.find(p => p.id === playerId);
         if (!player) return { success: false, message: "Joueur introuvable" };
+         // Vérification du gel
+        if (player.estGele) return { success: false, message: "Tu es gelé — impossible de vendre pendant 45 secondes" };
 
         const action = this.market.getStock(actionId);
         if (!action) return { success: false, message: "Action introuvable" };
@@ -121,6 +125,56 @@ class Game {
             solde:        player.getSolde(),
             portefeuille: player.getPortefeuilleDetail(),
             patrimoine:   player.getPatrimoine()
+        };
+    }
+    // Gel de compte
+    gelerJoueur(playerId, cibleId) {
+        const erreur = this._verifierPartieEnCours();
+        if (erreur) return { success: false, message: erreur };
+
+        if (!Number.isInteger(playerId) || playerId <= 0)
+            return { success: false, message: "playerId invalide" };
+        if (!Number.isInteger(cibleId) || cibleId <= 0)
+            return { success: false, message: "cibleId invalide" };
+        if (playerId === cibleId)
+            return { success: false, message: "Tu ne peux pas te geler toi-même" };
+
+        const player = this.players.find(p => p.id === playerId);
+        if (!player) return { success: false, message: "Joueur introuvable" };
+
+        // Un joueur gelé ne peut pas utiliser d'actions spéciales
+        if (player.estGele) return { success: false, message: "Tu es gelé — impossible d'utiliser une action spéciale" };
+
+        const cible = this.players.find(p => p.id === cibleId);
+        if (!cible) return { success: false, message: "Joueur cible introuvable" };
+
+        if (player.gelsRestants <= 0)
+            return { success: false, message: "Tu as épuisé tes gels pour cette partie" };
+
+        if (player.getSolde() < 1000)
+            return { success: false, message: "Solde insuffisant" };
+
+        if (cible.estGele)
+            return { success: false, message: "Ce joueur est déjà gelé" };
+
+        // Débit + décrément
+        player.debiterCompte(1000);
+        player.gelsRestants--;
+
+        // Gel de la cible
+        cible.estGele = true;
+        setTimeout(() => {
+            cible.estGele = false;
+            console.log(`[GAME] Joueur ${cible.name} dégel automatique`);
+        }, 45000);
+
+        console.log(`[GAME] ${player.name} a gelé ${cible.name} pendant 45s`);
+
+        return {
+            success: true,
+            message: `${cible.name} est gelé pendant 45 secondes`,
+            solde: player.getSolde(),
+            gelsRestants: player.gelsRestants
         };
     }
 
@@ -152,6 +206,53 @@ _formatDuree(ms) {
     const minutes = Math.floor(totalSecondes / 60);
     const secondes = totalSecondes % 60;
     return `${minutes}m ${secondes.toString().padStart(2, '0')}s`;
+}
+
+repandreRumeur(playerId, actionId, positif) {
+    const erreur = this._verifierPartieEnCours();
+    if (erreur) return { success: false, message: erreur };
+
+    if (!Number.isInteger(playerId) || playerId <= 0)
+        return { success: false, message: "playerId invalide" };
+    if (!Number.isInteger(actionId) || actionId <= 0)
+        return { success: false, message: "actionId invalide" };
+    if (typeof positif !== 'boolean')
+        return { success: false, message: "positif doit être un booléen (true/false)" };
+
+    const player = this.players.find(p => p.id === playerId);
+    if (!player) return { success: false, message: "Joueur introuvable" };
+    //  Un joueur gelé ne peut pas utiliser d'actions spéciales
+    if (player.estGele) return { success: false, message: "Tu es gelé — impossible d'utiliser une action spéciale" };
+    // Vérification limite d'utilisation
+    if (player.rumeursRestantes <= 0)
+        return { success: false, message: "Tu as épuisé tes rumeurs pour cette partie" };
+
+    // Vérification du solde
+    if (player.getSolde() < 500)
+        return { success: false, message: "Solde insuffisant — la rumeur coûte 500 crédits" };
+
+    const action = this.market.getStock(actionId);
+    if (!action) return { success: false, message: "Action introuvable" };
+
+    // Débit + décrément du compteur
+    player.debiterCompte(500);
+    player.rumeursRestantes--;
+
+    // Impact immédiat
+    const impact = positif ? 0.08 : -0.08;
+    action.fluctuer({ nom: "Rumeur", impact });
+
+    // Correction après 45 secondes
+    setTimeout(() => {
+        action.fluctuer({ nom: "Correction de rumeur", impact: -(impact * 0.5) });
+    }, 45000);
+
+    return {
+        success: true,
+        message: `Rumeur ${positif ? 'positive' : 'négative'} répandue sur ${action.nom}`,
+        solde: player.getSolde(),
+        rumeursRestantes: player.rumeursRestantes
+    };
 }
 }
 

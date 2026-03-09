@@ -6,6 +6,8 @@ import {
     getClassement,
     getActions,
     getDernierEvenement,
+    repandreRumeur,
+    gelerJoueur
 } from '../controllers/gameController.js';
 
 const router = express.Router();
@@ -33,5 +35,13 @@ router
     .route('/market/evenement')
     .get(getDernierEvenement);
 
+// ─── Rumeurs ─────────────────────────────────────────────────────────────────
+router
+    .route('/market/rumeur')
+    .post(repandreRumeur);
 
+// ─── Gel ─────────────────────────────────────────────────────────────────────
+router
+    .route('/market/geler')
+    .post(gelerJoueur);
 export default router;

@@ -1,0 +1,226 @@
+# ============================================================
+# BOURSICOTAGE — Fichier d'Ania (id: 1002)
+# Oumou héberge le serveur sur 192.168.56.1
+# Tu n'as pas besoin du projet — juste ce fichier !
+#
+# AVANT DE COMMENCER :
+#   1. Connecte-toi au même WiFi qu'Oumou
+#   2. Ouvre ce fichier dans VS Code avec REST Client
+#   3. Attends qu'Oumou lance le serveur
+# ============================================================
+
+
+# ─── 1. INSCRIPTION ──────────────────────────────────────────
+# Fais ça dès qu'Oumou te dit que le serveur est lancé
+
+### Tu t'inscris
+POST http://192.168.56.1:3000/api/joueurs
+Content-Type: application/json
+
+{
+    "name": "Ania"
+}
+
+###
+
+### Vérifier que vous êtes bien 2 (optionnel)
+GET http://192.168.56.1:3000/api/game/state
+
+###
+
+
+# ─── 2. ATTENDRE LE DÉMARRAGE ────────────────────────────────
+# Oumou démarre la partie — attends qu'elle te le dise
+# Puis vérifie que started: true
+
+### Vérifier que la partie a démarré
+GET http://192.168.56.1:3000/api/game/state
+
+###
+
+
+# ─── 3. OBSERVER LE MARCHÉ ───────────────────────────────────
+# Fais ça 3-4 fois avant d'acheter pour repérer les tendances
+#
+# Actions disponibles :
+#   id 1 - TechCorp     (prix initial : 100) → très volatile
+#   id 2 - BioLife      (prix initial :  80) → moyenne
+#   id 3 - EnergiePlus  (prix initial : 120) → stable
+#   id 4 - CryptoX      (prix initial :  50) → très volatile
+#   id 5 - AgroSud      (prix initial :  90) → stable
+#   id 6 - MediFuture   (prix initial : 110) → moyenne
+
+### Voir les cours (répète toutes les 10s pour voir les tendances)
+GET http://192.168.56.1:3000/api/market/actions
+
+###
+
+### Voir le dernier événement de marché
+GET http://192.168.56.1:3000/api/market/evenement
+
+###
+
+
+# ─── 4. TES ACHATS ───────────────────────────────────────────
+# Stratégie conseillée :
+#   - Achète des actions différentes d'Oumou pour éviter
+#     qu'elle sabote tes meilleures positions avec une rumeur
+#   - Garde 2500 crédits pour tes actions spéciales
+#   - Les actions stables (EnergiePlus, AgroSud) sont plus
+#     sûres mais moins rentables
+
+### Acheter BioLife — bonne valeur, moyenne volatilité
+POST http://192.168.56.1:3000/api/market/acheter
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 2,
+    "quantite": 25
+}
+
+###
+
+### Acheter MediFuture — stable et rentable sur la durée
+POST http://192.168.56.1:3000/api/market/acheter
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 6,
+    "quantite": 15
+}
+
+###
+
+### Acheter AgroSud — valeur refuge si le marché s'emballe
+POST http://192.168.56.1:3000/api/market/acheter
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 5,
+    "quantite": 20
+}
+
+###
+
+
+# ─── 5. SURVEILLER TON PORTEFEUILLE ──────────────────────────
+
+### Ton portefeuille
+GET http://192.168.56.1:3000/api/joueurs/1002/portefeuille
+
+###
+
+
+# ─── 6. TES VENTES ───────────────────────────────────────────
+
+### Vendre BioLife au pic
+POST http://192.168.56.1:3000/api/market/vendre
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 2,
+    "quantite": 25
+}
+
+###
+
+### Vendre MediFuture si ça monte bien
+POST http://192.168.56.1:3000/api/market/vendre
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 6,
+    "quantite": 15
+}
+
+###
+
+
+# ─── 7. TES ACTIONS SPÉCIALES ────────────────────────────────
+# Tu as 3 rumeurs et 2 gels — utilise-les au bon moment !
+
+# ── STRATÉGIE DÉFENSIVE ──────────────────────────────────────
+# Si Oumou répand une rumeur négative sur tes actions →
+# gèle-la immédiatement pour qu'elle ne puisse pas
+# profiter de la correction !
+
+### GEL — Bloque Oumou 45s
+### Meilleur moment : juste après qu'elle ait acheté massivement
+### → elle ne peut pas revendre si le cours chute
+POST http://192.168.56.1:3000/api/market/geler
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "cibleId": 1001
+}
+
+###
+
+# ── STRATÉGIE OFFENSIVE ──────────────────────────────────────
+# Répands une rumeur négative sur TechCorp ou CryptoX
+# → Oumou en détient probablement → son patrimoine chute !
+
+### Rumeur NÉGATIVE sur TechCorp (action favorite d'Oumou)
+POST http://192.168.56.1:3000/api/market/rumeur
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 1,
+    "positif": false
+}
+
+###
+
+### Rumeur POSITIVE sur BioLife
+### (tu en détiens → cours monte → vends au pic !)
+POST http://192.168.56.1:3000/api/market/rumeur
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 2,
+    "positif": true
+}
+
+###
+
+### Vends BioLife IMMÉDIATEMENT après la rumeur positive !
+POST http://192.168.56.1:3000/api/market/vendre
+Content-Type: application/json
+
+{
+    "playerId": 1002,
+    "actionId": 2,
+    "quantite": 25
+}
+
+###
+
+
+# ─── 8. SURVEILLER L'ÉTAT ────────────────────────────────────
+# Quand finished: true → fonce voir le classement !
+
+### État de la partie
+GET http://192.168.56.1:3000/api/game/state
+
+###
+
+
+# ─── 9. RÉSULTATS ────────────────────────────────────────────
+
+### Classement final
+GET http://192.168.56.1:3000/api/game/classement
+
+###
+
+### Ton historique de transactions
+GET http://192.168.56.1:3000/api/joueurs/1002/historique
+
+###

@@ -9,6 +9,9 @@ class Player {
         // Structure : { actionId: { action: obj, quantite: number } }
         this.portefeuille = {};
         this.historique = []; // Pour stocker les transactions passées
+        this.rumeursRestantes = 3; // Limite de rumeurs par partie
+        this.estGele = false;      // Indique si le joueur est gelé (ne peut pas acheter/vendre)
+        this.gelsRestants = 2;     // Limite de gels par partie
     }
 
     // ─── Gestion du solde ────────────────────────────────────────────────────
