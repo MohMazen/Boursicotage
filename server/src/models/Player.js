@@ -1,7 +1,7 @@
 let compteurId = 1001;
 export const resetCompteurId = () => { compteurId = 1001; };
 class Player {
-    constructor(name, id) {
+    constructor(name) {
         this.id    = compteurId++;
         this.name  = name;
         this.solde = 10000;
@@ -46,7 +46,7 @@ class Player {
         this.historique.push({
             type: 'achat', actionId: action.id, actionNom: action.nom,
             quantite, prixUnitaire: action.prix, total: coutTotal,
-            timestamp: Date.now()
+            timestamp: new Date().toLocaleTimeString('fr-FR')
         });
         return true;
     }
@@ -66,7 +66,7 @@ class Player {
             type: 'vente', actionId: action.id, actionNom: action.nom,
             quantite, prixUnitaire: action.prix, total: gainTotal,
             plusValue, //  positif = bénéfice, négatif = perte
-            timestamp: Date.now()
+            timestamp: new Date().toLocaleTimeString('fr-FR')
         });
         return true;
     }
@@ -94,7 +94,8 @@ class Player {
                 prixActuel:      ligne.action.prix,
                 prixMoyenAchat:  ligne.prixMoyenAchat,  // prix moyen d'achat pour calculer les plus-values latentes
                 valeurTotale:    parseFloat((ligne.quantite * ligne.action.prix).toFixed(2)),
-                plusValueLatente: parseFloat(((ligne.action.prix - ligne.prixMoyenAchat) * ligne.quantite).toFixed(2)) //  positif = plus-value latente, négatif = moins-value latente
+                plusValueLatente: parseFloat(((ligne.action.prix - ligne.prixMoyenAchat) * ligne.quantite).toFixed(2)), //  positif = plus-value latente, négatif = moins-value latente
+                pourcentageEvolution: parseFloat((((ligne.action.prix - ligne.prixMoyenAchat) / ligne.prixMoyenAchat) * 100).toFixed(2))
             };
         }
         return detail;
