@@ -8,6 +8,7 @@ class Game {
         this.finished = false;
         this.market   = new Market();
         this.timer    = new GameTimer();
+        this._derniereRumeur = {};
 
         // Callback Socket.io injecté depuis socketHandler
         this._onGameEnd = null;
@@ -28,6 +29,7 @@ class Game {
         this.players  = [];
         this.finished = false;
         this.market   = new Market();
+        this._derniereRumeur = {};
         resetCompteurId();
     }
 
@@ -94,6 +96,8 @@ class Game {
 
         const success = player.acheterAction(action, quantite);
         if (!success) return { success: false, message: "Solde insuffisant" };
+        //  Effet volume — l'achat fait légèrement monter le prix
+        action.prix = parseFloat((action.prix * (1 + 0.001 * quantite)).toFixed(2));
 
         return {
             success: true,
@@ -119,6 +123,8 @@ class Game {
 
         const success = player.vendreAction(action, quantite);
         if (!success) return { success: false, message: "Actions insuffisantes" };
+        // ✅ Effet volume — la vente fait légèrement baisser le prix
+        action.prix = parseFloat((action.prix * (1 - 0.001 * quantite)).toFixed(2));
 
         return {
             success: true,
@@ -195,7 +201,6 @@ class Game {
         finished:         this.finished,
         nbJoueurs:        this.players.length,
         tempsEcoule:      this._formatDuree(this.getTempsEcoule()),
-        dureeRestante:    this._formatDuree(this.getDureeRestante()),
         dernierEvenement: this.market.getDernierEvenement(),
         classement:       this.finished ? this.calculerClassement() : null
     };
@@ -230,7 +235,11 @@ repandreRumeur(playerId, actionId, positif) {
     // Vérification du solde
     if (player.getSolde() < 500)
         return { success: false, message: "Solde insuffisant — la rumeur coûte 500 crédits" };
-
+    // Vérification cooldown
+    const COOLDOWN = 60000; // 1 minute
+    const tempsRestant = COOLDOWN - (Date.now() - (this._derniereRumeur[playerId] || 0));
+    if (tempsRestant > 0)
+        return { success: false, message: `Cooldown actif — attends encore ${Math.ceil(tempsRestant / 1000)}s` };
     const action = this.market.getStock(actionId);
     if (!action) return { success: false, message: "Action introuvable" };
 
@@ -240,12 +249,24 @@ repandreRumeur(playerId, actionId, positif) {
 
     // Impact immédiat
     const impact = positif ? 0.08 : -0.08;
-    action.fluctuer({ nom: "Rumeur", impact });
+    action._rumeurImpact = positif ? 0.01 : -0.01; // Impact visible dans le détail de l'action
 
-    // Correction après 45 secondes
     setTimeout(() => {
-        action.fluctuer({ nom: "Correction de rumeur", impact: -(impact * 0.5) });
+        action._rumeurImpact = positif ? -0.03 : 0.03; // correction inverse
+        setTimeout(() => {
+            action._rumeurImpact = null;
+        }, 9000);
     }, 45000);
+    const fausseInfo = this.market.getFausseInfo(positif);
+    this.market.setDernierEvenement({
+        actionId:  action.id,
+        actionNom: action.nom,
+        evenement: fausseInfo,
+        impact,
+        timestamp: new Date().toLocaleTimeString('fr-FR')
+    });
+
+    this._derniereRumeur[playerId] = Date.now();
 
     return {
         success: true,
