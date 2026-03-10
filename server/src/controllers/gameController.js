@@ -20,6 +20,11 @@ export const ajouterJoueur = (req, res) => {
     res.json({ message: "Joueur ajouté", joueur: { id: player.id, name: player.name } });
 };
 export const demarrerPartie = (req, res) => {
+    // Si la partie est terminée, on refuse de démarrer une nouvelle partie tant que les joueurs n'ont pas été réinitialisés
+    if (game.finished) {
+        return res.status(400).json({ message: "Partie terminée — inscrivez les joueurs avant de redémarrer" });
+    }
+
     const success = game.demarrer();
     if (!success) return res.status(400).json({ message: "Impossible de démarrer la partie (nombre de joueurs insuffisant)" });
     res.json({ message: "Partie démarrée" });
