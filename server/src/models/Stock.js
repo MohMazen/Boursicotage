@@ -13,6 +13,7 @@ class Stock {
             moyenne: 0.03,
             elevee: 0.07
         };
+        this._tendance = 0; // positif = tendance haussière, négatif = tendance baissière, 0 = neutre
     }
 
     _getCoeff() {
@@ -23,10 +24,11 @@ class Stock {
     fluctuer(evenement = null) {
         const coeff = this._getCoeff();
         let variation = (Math.random() * 2 - 1) * coeff; // entre -coeff et +coeff
-
-        if (evenement) {
-            variation += evenement.impact;
-        }
+        variation += this._tendance; // ajoute la tendance actuelle
+        // Si un événement affecte cette action, on applique son impact
+        if (evenement) variation += evenement.impact;
+        // Si une rumeur a été lancée sur cette action, on applique son impact
+        if (this._rumeurImpact) variation += this._rumeurImpact;
 
         // Le prix ne peut pas tomber en dessous de 1
         this.prix = Math.max(1, parseFloat((this.prix * (1 + variation)).toFixed(2)));
