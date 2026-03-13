@@ -1,4 +1,4 @@
-import Market    from '../services/MarketEngine.js';
+import MarketEngine from '../services/MarketEngine.js';
 import GameTimer from '../services/GameTimer.js';
 import { resetCompteurId } from '../models/Player.js';
 class Game {
@@ -6,7 +6,7 @@ class Game {
         this.players  = [];
         this.started  = false;
         this.finished = false;
-        this.market   = new Market();
+        this.market   = new MarketEngine();
         this.timer    = new GameTimer();
         this._derniereRumeur = {};
 
@@ -28,7 +28,7 @@ class Game {
     preparerNouvellePartie() {
         this.players  = [];
         this.finished = false;
-        this.market   = new Market();
+        this.market   = new MarketEngine();
         this._derniereRumeur = {};
         resetCompteurId();
     }

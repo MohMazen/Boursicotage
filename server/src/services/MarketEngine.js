@@ -1,229 +1,180 @@
+import Stock from '../models/Stock.js';
+
+// ── Événements macro-économiques prédéfinis ──────────────────────────────────
+const EVENEMENTS_POSITIFS = [
+    "Résultats trimestriels excellents",
+    "Nouveau contrat signé avec l'État",
+    "Innovation technologique majeure",
+    "Entrée sur un nouveau marché",
+    "Partenariat stratégique annoncé",
+    "Hausse de la demande mondiale",
+    "Bénéfices record annoncés",
+    "Recommandation d'achat par analyste"
+];
+
+const EVENEMENTS_NEGATIFS = [
+    "Scandale financier révélé",
+    "Perte d'un gros client",
+    "Régulation défavorable adoptée",
+    "Fuite de données massive",
+    "Démission du PDG",
+    "Rappel de produit massif",
+    "Résultats décevants",
+    "Amende record de l'autorité de marché"
+];
+
+const FAUSSES_INFOS_POSITIVES = [
+    "Rumeur : fusion imminente avec un géant du secteur",
+    "Rumeur : contrat secret avec une grande puissance",
+    "Rumeur : nouvelle technologie révolutionnaire en préparation",
+    "Rumeur : investissement massif d'un fonds souverain"
+];
+
+const FAUSSES_INFOS_NEGATIVES = [
+    "Rumeur : faillite imminente",
+    "Rumeur : enquête pénale en cours",
+    "Rumeur : perte d'un brevet clé",
+    "Rumeur : départ massif de cadres dirigeants"
+];
+
+// ── Actions prédéfinies ──────────────────────────────────────────────────────
+const ACTIONS_INITIALES = [
+    { id: 1, nom: 'TechNova',    prix: 120, volatilite: 'elevee'  },
+    { id: 2, nom: 'BioSanté',    prix:  85, volatilite: 'moyenne' },
+    { id: 3, nom: 'ÉcoVert',     prix:  60, volatilite: 'moyenne' },
+    { id: 4, nom: 'FinancePlus',  prix: 200, volatilite: 'faible'  },
+    { id: 5, nom: 'MédiaWorld',  prix:  45, volatilite: 'elevee'  },
+];
+
+/**
+ * MarketEngine — Moteur de marché multi-actions
+ *
+ * Fournit l'API attendue par Game.js :
+ *   demarrer(), arreter(), getAllStocks(), getStock(id),
+ *   getDernierEvenement(), setDernierEvenement(), getFausseInfo()
+ */
 class MarketEngine {
     constructor() {
-        // Configuration du marché
-        this.stock = null;              // L'action unique
-        this.history = [];              // Historique des prix [{ timestamp, price }]
-        this.maxHistoryLength = 1000;   // Garder les 1000 dernières valeurs
-        this.isRunning = false;         // État du moteur
-        this.intervalId = null;         // ID de l'intervalle de mise à jour
+        this.stocks           = [];
+        this.isRunning        = false;
+        this.intervalId       = null;
+        this.eventIntervalId  = null;
+        this._dernierEvenement = null;
+        this._io               = null;      // référence Socket.IO (optionnelle)
 
-        // Paramètres de simulation (modifiables)
-        this.updateInterval = 100;      // Mise à jour toutes les 100ms (10 fois/seconde)
-        this.deltaT = this.updateInterval / 1000; // Δt en secondes
+        // Génère les actions initiales
+        for (const cfg of ACTIONS_INITIALES) {
+            this.stocks.push(new Stock(cfg.id, cfg.nom, cfg.prix, cfg.volatilite));
+        }
     }
 
-    /**
-     * Génère le marché initial avec UNE seule action
-     */
-    generateMarket(config = {}) {
-        const defaultConfig = {
-            name: 'TechCorp',
-            symbol: 'TECH',
-            initialPrice: 100.0,        // S₀ = 100€
-            mu: 0.05,                   // μ = 5% de rendement annuel espéré
-            sigma: 0.20,                // σ = 20% de volatilité annuelle
-        };
-
-        const stockConfig = { ...defaultConfig, ...config };
-
-        this.stock = {
-            id: this.generateId(),
-            name: stockConfig.name,
-            symbol: stockConfig.symbol,
-            price: stockConfig.initialPrice,
-            previousPrice: stockConfig.initialPrice,
-            mu: stockConfig.mu,               // Drift (tendance)
-            sigma: stockConfig.sigma,         // Volatilité
-            variation: 0,                     // Variation en %
-            createdAt: Date.now(),
-        };
-
-        // Initialiser l'historique avec le prix initial
-        this.history = [{
-            timestamp: Date.now(),
-            price: this.stock.price,
-        }];
-
-        console.log(`✅ Marché généré : ${this.stock.name} (${this.stock.symbol})`);
-        console.log(`   Prix initial : ${this.stock.price.toFixed(2)}€`);
-        console.log(`   Drift (μ) : ${(this.stock.mu * 100).toFixed(2)}%`);
-        console.log(`   Volatilité (σ) : ${(this.stock.sigma * 100).toFixed(2)}%`);
-
-        return this.stock;
-    }
+    // ── Cycle de vie ─────────────────────────────────────────────────────────
 
     /**
-     * Démarre la simulation du marché
+     * Démarre la simulation.
+     * @param {object} [io] — instance Socket.IO pour émettre les mises à jour
      */
-    start(socketIO) {
-        if (this.isRunning) {
-            console.warn('⚠️  MarketEngine déjà démarré');
-            return;
-        }
-
-        if (!this.stock) {
-            throw new Error('❌ Aucune action générée. Appelez generateMarket() d\'abord.');
-        }
-
+    demarrer(io) {
+        if (this.isRunning) return;
         this.isRunning = true;
-        console.log(`🚀 MarketEngine démarré (mise à jour toutes les ${this.updateInterval}ms)`);
+        if (io) this._io = io;
 
-        // Lancer la simulation avec setInterval
+        // Fluctuation toutes les 2 secondes
         this.intervalId = setInterval(() => {
-            this.fluctuate();
+            this._tick();
+        }, 2000);
 
-            // Diffuser la mise à jour via Socket.IO
-            if (socketIO) {
-                socketIO.emit('market:update', {
-                    stock: this.stock,
-                    timestamp: Date.now(),
-                });
-            }
-        }, this.updateInterval);
+        // Événement macro toutes les 30 secondes
+        this.eventIntervalId = setInterval(() => {
+            this._genererEvenement();
+        }, 30000);
+
+        console.log('[MARKET] Marché démarré');
     }
 
-    /**
-     * Calcule le nouveau prix selon le Mouvement Brownien Géométrique
-     * Formule : S(t+Δt) = S(t) × exp((μ - σ²/2)Δt + σε√Δt)
-     */
-    fluctuate() {
-        if (!this.stock) return;
-
-        const St = this.stock.price;              // Prix actuel
-        const mu = this.stock.mu;                 // Drift (tendance)
-        const sigma = this.stock.sigma;           // Volatilité
-        const deltaT = this.deltaT;               // Δt (en secondes)
-        const epsilon = this.randomNormal();      // ε ~ N(0,1)
-
-        // Calcul du drift ajusté : (μ - σ²/2)Δt
-        const driftTerm = (mu - (sigma ** 2) / 2) * deltaT;
-
-        // Calcul du terme stochastique : σε√Δt
-        const randomTerm = sigma * epsilon * Math.sqrt(deltaT);
-
-        // Calcul du nouveau prix : S(t+Δt) = S(t) × exp(drift + random)
-        const newPrice = St * Math.exp(driftTerm + randomTerm);
-
-        // Mise à jour de l'action
-        this.stock.previousPrice = St;
-        this.stock.price = Math.max(0.01, newPrice); // Prix minimum = 0.01€
-
-        // Calcul de la variation en %
-        this.stock.variation = ((this.stock.price - this.stock.previousPrice) / this.stock.previousPrice) * 100;
-
-        // Ajouter au historique
-        this.history.push({
-            timestamp: Date.now(),
-            price: this.stock.price,
-        });
-
-        // Limiter la taille de l'historique
-        if (this.history.length > this.maxHistoryLength) {
-            this.history.shift(); // Retirer le plus ancien
-        }
-    }
-
-    /**
-     * Génère une variable aléatoire suivant une loi normale N(0,1)
-     */
-    randomNormal() {
-        // Box-Muller transform pour générer N(0,1)
-        let u1 = 0, u2 = 0;
-
-        // Éviter u1 = 0 (car log(0) = -∞)
-        while (u1 === 0) u1 = Math.random();
-        while (u2 === 0) u2 = Math.random();
-
-        // Transformation de Box-Muller
-        const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-
-        return z0; // z0 suit une loi N(0,1)
-    }
-
-    /**
-     * Arrête la simulation du marché
-     */
-    stop() {
-        if (!this.isRunning) {
-            console.warn('⚠️  MarketEngine déjà arrêté');
-            return;
-        }
-
-        clearInterval(this.intervalId);
+    arreter() {
+        if (!this.isRunning) return;
         this.isRunning = false;
-        console.log('🛑 MarketEngine arrêté');
+        clearInterval(this.intervalId);
+        clearInterval(this.eventIntervalId);
+        this.intervalId      = null;
+        this.eventIntervalId = null;
+        console.log('[MARKET] Marché arrêté');
     }
 
-    /**
-     * Retourne l'action actuelle
-     */
-    getStock() {
-        return this.stock;
-    }
+    // ── Tick (fluctuation de toutes les actions) ─────────────────────────────
 
-    /**
-     * Retourne l'historique des prix
-     */
-    getHistory(limit = null) {
-        if (limit && limit > 0) {
-            return this.history.slice(-limit);
+    _tick() {
+        for (const stock of this.stocks) {
+            stock.fluctuer();
         }
-        return this.history;
-    }
 
-    /**
-     * Modifie les paramètres de l'action (μ, σ) en cours de simulation
-     * Utile pour simuler des événements marché
-     */
-    updateParameters(newParams) {
-        if (newParams.mu !== undefined) {
-            this.stock.mu = newParams.mu;
-            console.log(`📊 Drift (μ) modifié : ${(this.stock.mu * 100).toFixed(2)}%`);
-        }
-        if (newParams.sigma !== undefined) {
-            this.stock.sigma = newParams.sigma;
-            console.log(`📊 Volatilité (σ) modifiée : ${(this.stock.sigma * 100).toFixed(2)}%`);
+        // Émet la mise à jour en temps réel si Socket.IO est branché
+        if (this._io) {
+            this._io.emit('market:update', {
+                actions:   this.getAllStocks(),
+                timestamp: Date.now()
+            });
         }
     }
 
-    /**
-     * Génère un ID unique pour l'action
-     */
-    generateId() {
-        return `STOCK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    }
+    // ── Événements macro ─────────────────────────────────────────────────────
 
-    /**
-     * Retourne les statistiques du marché
-     */
-    getStatistics() {
-        if (this.history.length === 0) return null;
+    _genererEvenement() {
+        const positif    = Math.random() > 0.5;
+        const liste      = positif ? EVENEMENTS_POSITIFS : EVENEMENTS_NEGATIFS;
+        const evenement  = liste[Math.floor(Math.random() * liste.length)];
+        const action     = this.stocks[Math.floor(Math.random() * this.stocks.length)];
+        const impact     = positif
+            ? +(Math.random() * 0.08 + 0.02).toFixed(4)   // +2% à +10%
+            : -(Math.random() * 0.08 + 0.02).toFixed(4);  // -2% à -10%
 
-        const prices = this.history.map(h => h.price);
-        const min = Math.min(...prices);
-        const max = Math.max(...prices);
-        const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
-        const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length;
-        const stdDev = Math.sqrt(variance);
+        // Applique l'impact à l'action ciblée
+        action.fluctuer({ impact });
 
-        return {
-            min: min.toFixed(2),
-            max: max.toFixed(2),
-            mean: mean.toFixed(2),
-            stdDev: stdDev.toFixed(2),
-            dataPoints: prices.length,
+        this._dernierEvenement = {
+            actionId:  action.id,
+            actionNom: action.nom,
+            evenement,
+            impact,
+            timestamp: new Date().toLocaleTimeString('fr-FR')
         };
+
+        // Émet l'événement via Socket.IO
+        if (this._io) {
+            this._io.emit('market:event', this._dernierEvenement);
+        }
+
+        console.log(`[MARKET] Événement : ${evenement} → ${action.nom} (${impact > 0 ? '+' : ''}${(impact * 100).toFixed(1)}%)`);
     }
 
-    /**
-     * Réinitialise le marché
-     */
-    reset() {
-        this.stop();
-        this.stock = null;
-        this.history = [];
-        console.log('🔄 MarketEngine réinitialisé');
+    // ── Lecture ───────────────────────────────────────────────────────────────
+
+    getAllStocks() {
+        return this.stocks.map(s => s.toJSON());
+    }
+
+    getStock(id) {
+        return this.stocks.find(s => s.id === id) || null;
+    }
+
+    getDernierEvenement() {
+        return this._dernierEvenement;
+    }
+
+    setDernierEvenement(evt) {
+        this._dernierEvenement = evt;
+
+        // Propage aussi par socket
+        if (this._io) {
+            this._io.emit('market:event', evt);
+        }
+    }
+
+    getFausseInfo(positif) {
+        const liste = positif ? FAUSSES_INFOS_POSITIVES : FAUSSES_INFOS_NEGATIVES;
+        return liste[Math.floor(Math.random() * liste.length)];
     }
 }
 
-module.exports = MarketEngine;
+export default MarketEngine;
