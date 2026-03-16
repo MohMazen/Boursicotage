@@ -19,15 +19,13 @@ export const initSocket = (io) => {
     // ── Diffusion des cours toutes les 3 secondes ─────────────────────────────
     setInterval(() => {
         if (!game.started) return;
-        io.emit('market:update', { actions: game.market.getAllActions() });
+        io.emit('market:update', { actions: game.market.getAllStocks() });
     }, 3000);
-
-    // ── Diffusion du dernier événement de marché (polling léger) ─────────────
-    setInterval(() => {
-        if (!game.started) return;
-        const ev = game.market.getDernierEvenement();
-        if (ev) io.emit('market:event', { evenement: ev });
-    }, 5000);
+// ── Callback d'événement de marché → émis à chaque événement aléatoire ───────
+    game.market.setOnEvenement((evenement) => {
+    io.emit('market:event', { evenement });
+    io.emit('market:update', { actions: game.market.getAllStocks() });
+    });
 
     // ── Callback de fin de partie → émis une seule fois ──────────────────────
     game.setOnGameEnd((classement) => {
@@ -64,29 +62,15 @@ export const initSocket = (io) => {
 
         // ── Action spéciale : rumeur ───────────────────────────────────────────
         socket.on('player:rumeur', ({ playerId, actionId, positif }) => {
-            if (!game.started) {
-                socket.emit('error', { message: "Partie non démarrée" });
-                return;
-            }
+        const result = game.repandreRumeur(parseInt(playerId), parseInt(actionId), positif);
+        socket.emit('player:update', result);
 
-            const ok = game.market.repandreRumeur(actionId, positif);
-            if (!ok) {
-                socket.emit('error', { message: "Action introuvable" });
-                return;
-            }
-
-            // Prévient tout le monde qu'une rumeur circule (sans révéler l'auteur)
-            io.emit('market:event', {
-                evenement: {
-                    actionId,
-                    evenement: positif ? "Rumeur positive en circulation" : "Rumeur négative en circulation",
-                    impact:    positif ? 0.08 : -0.08,
-                    timestamp: Date.now()
-                }
-            });
-
-            console.log(`[SOCKET] Rumeur de joueur ${playerId} sur action ${actionId} (${positif ? '+' : '-'})`);
-        });
+        if (result.success) {
+        // Les cours mis à jour immédiatement
+            io.emit('market:update', { actions: game.market.getAllStocks() });
+            console.log(`[SOCKET] Rumeur : joueur ${playerId} sur action ${actionId}`);
+        }
+    });
 
         socket.on('disconnect', () => {
             console.log(`[SOCKET] Client déconnecté : ${socket.id}`);
