@@ -1,35 +1,50 @@
+/**
+ * GameTimer — Gère le chronomètre d'une partie
+ * Durée par défaut : 5 minutes (300 000 ms)
+ */
 class GameTimer {
-    constructor() {
-        this._timer    = null;
-        this._start    = null;
-        this._end      = null;
-        this._onEnd    = null;
+    constructor(dureeMs = 5 * 60 * 1000) {
+        this.dureeMs   = dureeMs;
+        this.startTime = null;
+        this.timeoutId = null;
     }
 
-    start(onEnd, minMin = 5, maxMin = 15) {
-        if (this._timer) return false;
-
-        const randomMinutes = Math.floor(Math.random() * (maxMin - minMin + 1)) + minMin;
-        const duration  = randomMinutes * 60 * 1000;
-        this._start     = Date.now();
-        this._end       = this._start + duration;
-        this._onEnd     = onEnd;
-
-        this._timer = setTimeout(() => {
-            this._onEnd?.();
-            this._timer = null;
-        }, duration);
-
-        console.log(`[TIMER] Durée secrète : ${randomMinutes} min`);
-        return true;
+    /**
+     * Démarre le timer. Appelle `onFinish()` quand le temps est écoulé.
+     */
+    start(onFinish) {
+        this.startTime = Date.now();
+        this.timeoutId = setTimeout(() => {
+            onFinish();
+        }, this.dureeMs);
     }
 
+    /**
+     * Arrête le timer manuellement (fin anticipée).
+     */
     stop() {
-        if (this._timer) { clearTimeout(this._timer); this._timer = null; }
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
     }
 
-    getTempsEcoule()    { return this._start ? Date.now() - this._start : 0; }
-    getDureeRestante()  { return this._end   ? Math.max(0, this._end - Date.now()) : 0; }
+    /**
+     * Retourne le temps écoulé en millisecondes.
+     */
+    getTempsEcoule() {
+        if (!this.startTime) return 0;
+        return Date.now() - this.startTime;
+    }
+
+    /**
+     * Retourne le temps restant en millisecondes.
+     */
+    getDureeRestante() {
+        if (!this.startTime) return this.dureeMs;
+        const restant = this.dureeMs - (Date.now() - this.startTime);
+        return Math.max(0, restant);
+    }
 }
 
 export default GameTimer;
