@@ -1,0 +1,100 @@
+/* ── Page entière ── */
+.lobby-page {
+    min-height: 100vh;
+    background-color: #0d1117;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Contenu au dessus du canvas ── */
+.lobby-page > *:not(canvas) {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Titre ── */
+.lobby-title {
+    font-size: 2rem;
+    color: #00ff88;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+}
+
+.lobby-pseudo {
+    color: #8b949e;
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+}
+
+.lobby-pseudo span {
+    color: #e6edf3;
+    font-weight: bold;
+}
+
+/* ── Carte ── */
+.lobby-card {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 40px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Sous-titre joueurs ── */
+.lobby-subtitle {
+    color: #8b949e;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+/* ── Liste des joueurs ── */
+.lobby-liste {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lobby-joueur {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: #e6edf3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lobby-joueur-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #00ff88;
+}
+
+/* ── Bouton ── */
+.lobby-button {
+    background-color: #00ff88;
+    color: #0d1117;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.lobby-button:hover {
+    background-color: #00cc6a;
+}
