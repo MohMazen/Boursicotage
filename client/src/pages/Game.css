@@ -1,0 +1,245 @@
+/* ── Page entière ── */
+.jeu-page {
+    min-height: 100vh;
+    background-color: #0d1117;
+    color: #e6edf3;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── En-tête ── */
+.jeu-entete {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 14px 24px;
+}
+
+.jeu-entete-gauche .jeu-logo {
+    color: #00ff88;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.jeu-entete-centre .jeu-chrono {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 6px 20px;
+    font-size: 1.1rem;
+    color: #00ff88;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.jeu-entete-droite {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.jeu-pseudo {
+    color: #8b949e;
+    font-size: 0.95rem;
+}
+
+.jeu-solde {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 6px 14px;
+    color: #00ff88;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+/* ── Contenu principal ── */
+.jeu-contenu {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ── Carte générique ── */
+.jeu-carte {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.jeu-carte-titre {
+    color: #e6edf3;
+    font-size: 1rem;
+    margin: 0 0 16px 0;
+    letter-spacing: 1px;
+}
+
+/* ── Tableau du marché ── */
+.marche-tableau {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.marche-tableau th {
+    text-align: left;
+    color: #8b949e;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #30363d;
+}
+
+.marche-tableau td {
+    padding: 12px;
+    border-bottom: 1px solid #21262d;
+    font-size: 0.95rem;
+}
+
+.marche-tableau tr:last-child td {
+    border-bottom: none;
+}
+
+.marche-nom {
+    color: #e6edf3;
+    font-weight: bold;
+}
+
+.marche-prix {
+    color: #e6edf3;
+}
+
+.positif { color: #00ff88; font-weight: bold; }
+.negatif { color: #ff4d4d; font-weight: bold; }
+
+/* ── Boutons acheter / vendre ── */
+.bouton-acheter {
+    background-color: #00ff8822;
+    color: #00ff88;
+    border: 1px solid #00ff88;
+    border-radius: 6px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.bouton-acheter:hover { background-color: #00ff8844; }
+
+.bouton-vendre {
+    background-color: #ff4d4d22;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+    border-radius: 6px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.bouton-vendre:hover { background-color: #ff4d4d44; }
+
+/* ── Milieu côte à côte ── */
+.jeu-milieu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* ── Graphe ── */
+.graphe-selecteurs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.graphe-bouton {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.graphe-bouton:hover {
+    border-color: #00ff88;
+    color: #00ff88;
+}
+
+.graphe-bouton-actif {
+    background-color: #00ff8822;
+    border-color: #00ff88;
+    color: #00ff88;
+    font-weight: bold;
+}
+
+/* ── Actions spéciales ── */
+.special-grille {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.special-carte {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.special-titre {
+    color: #e6edf3;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.special-description {
+    color: #8b949e;
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.special-selection {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.special-bouton {
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.special-bouton-vert  { background-color: #00ff8822; color: #00ff88; border: 1px solid #00ff88; }
+.special-bouton-vert:hover  { background-color: #00ff8844; }
+
+.special-bouton-rouge { background-color: #ff4d4d22; color: #ff4d4d; border: 1px solid #ff4d4d; }
+.special-bouton-rouge:hover { background-color: #ff4d4d44; }
+
+.special-bouton-bleu  { background-color: #4d9fff22; color: #4d9fff; border: 1px solid #4d9fff; }
+.special-bouton-bleu:hover  { background-color: #4d9fff44; }
+
+/* ── Portefeuille vide ── */
+.portefeuille-vide {
+    color: #484f58;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 20px 0;
+}
