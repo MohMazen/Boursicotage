@@ -86,6 +86,11 @@ export default function Home() {
                         <span className="mode-label">Je rejoins une partie</span>
                         <span className="mode-desc">Se connecter à un autre joueur</span>
                     </button>
+                    <button className="home-mode-bouton home-mode-local" onClick={() => navigate('/local')}>
+                        <span className="mode-icon">🎮</span>
+                        <span className="mode-label">Duel Local (1 Écran)</span>
+                        <span className="mode-desc">Jouer à deux sur ce clavier</span>
+                    </button>
                 </div>
             )}
 

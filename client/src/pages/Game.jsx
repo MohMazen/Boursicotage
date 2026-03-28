@@ -397,7 +397,7 @@ export default function Game() {
                                 {actions.map((a) => {
                                     const tendance = getTendance(a);
                                     const evolution = getEvolution(a);
-                                    const insuffisant = solde < a.prix * quantiteAchat;
+                                    const insuffisant = solde < a.prix * quantite;
                                     return (
                                         <tr key={a.id}>
                                             <td className="marche-nom">{a.nom} <span className="marche-secteur">{a.secteur}</span></td>

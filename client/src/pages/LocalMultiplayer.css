@@ -1,0 +1,146 @@
+.local-multiplayer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+.local-header {
+    height: 60px;
+    padding: 0 20px;
+}
+
+.header-duel-info {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-duel {
+    font-weight: 900;
+    color: #ffd93d;
+    font-size: 1.2rem;
+}
+
+.phase-shared {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.shared-market-zone {
+    flex: 1;
+    background: rgba(13, 17, 23, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #30363d;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.shared-action-name {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #00ff88;
+}
+
+.split-view {
+    display: flex;
+    height: 50%;
+}
+
+.player-panel {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.player-left {
+    border-right: 1px solid #30363d;
+    background: linear-gradient(to right, rgba(0, 255, 136, 0.05), transparent);
+}
+
+.player-right {
+    background: linear-gradient(to left, rgba(0, 201, 255, 0.05), transparent);
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.p-tag {
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: #8b949e;
+}
+
+.player-left .p-tag { color: #00ff88; }
+.player-right .p-tag { color: #00c9ff; }
+
+.p-wealth {
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+.p-cash {
+    font-size: 1.1rem;
+    color: #8b949e;
+}
+
+.p-shortcuts {
+    display: flex;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: #8b949e;
+}
+
+.p-shortcuts span {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.p-shortcuts strong {
+    color: #fff;
+}
+
+.p-portfolio {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.p-stock-line {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.p-stock-line .pos { color: #00ff88; }
+.p-stock-line .neg { color: #ff6b6b; }
+
+.btn-quit {
+    background: transparent;
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.btn-quit:hover {
+    background: #ff4d4d;
+    color: #fff;
+}

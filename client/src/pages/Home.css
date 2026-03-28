@@ -34,10 +34,15 @@
 /* ── Mode Selection ── */
 .home-mode-selection {
     display: flex;
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: stretch;
     gap: 20px;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    width: auto !important;
+    max-width: 1000px !important;
 }
 
 .home-mode-bouton {
@@ -66,6 +71,10 @@
 
 .home-mode-rejoindre:hover {
     border-color: #00c9ff;
+}
+
+.home-mode-local:hover {
+    border-color: #ffd93d;
 }
 
 .mode-icon {
