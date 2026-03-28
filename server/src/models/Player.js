@@ -1,10 +1,11 @@
 let compteurId = 1001;
 export const resetCompteurId = () => { compteurId = 1001; };
 class Player {
-    constructor(name) {
+    constructor(name, sessionToken) {
         this.id    = compteurId++;
         this.name  = name;
         this.solde = 10000;
+        this.sessionToken = sessionToken;
 
         // Structure : { actionId: { action: obj, quantite: number } }
         this.portefeuille = {};

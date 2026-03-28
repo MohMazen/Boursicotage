@@ -2,16 +2,34 @@ import game from '../instance/game_instance.js';
 import Player from "../models/Player.js";
 
 export const ajouterJoueur = (req, res) => {
-    const { name } = req.body;
+    const { name, sessionToken } = req.body;
     if (!name || typeof name !== 'string' || name.trim() === '')
         return res.status(400).json({ message: "Le champ 'name' est requis" });
 
-    //  Reset avant de créer le joueur si partie terminée
+    const trimmedName = name.trim();
+
+    // Vérifier si le joueur existe déjà
+    const existingPlayer = game.players.find(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+    
+    if (existingPlayer) {
+        // Sécurité : si le token envoyé ne correspond pas, c'est quelqu'un d'autre qui tente de voler le pseudo
+        if (existingPlayer.sessionToken && existingPlayer.sessionToken !== sessionToken) {
+            return res.status(403).json({ message: "Ce pseudo est déjà utilisé !" });
+        }
+        
+        // Si c'est le bon token, on récupère la session existante (refresh ou double-mount)
+        return res.json({ 
+            message: "Session récupérée", 
+            joueur: { id: existingPlayer.id, name: existingPlayer.name } 
+        });
+    }
+
+    // Reset avant de créer le joueur si partie terminée
     if (game.finished) {
         game.preparerNouvellePartie();
     }
 
-    const player  = new Player(name.trim());
+    const player  = new Player(trimmedName, sessionToken);
     const success = game.addPlayer(player);
 
     if (!success)
@@ -19,20 +37,19 @@ export const ajouterJoueur = (req, res) => {
 
     res.json({ message: "Joueur ajouté", joueur: { id: player.id, name: player.name } });
 };
+
 export const demarrerPartie = (req, res) => {
-    // Si la partie est terminée, on refuse de démarrer une nouvelle partie tant que les joueurs n'ont pas été réinitialisés
     if (game.finished) {
         return res.status(400).json({ message: "Partie terminée — inscrivez les joueurs avant de redémarrer" });
     }
 
-    const success = game.demarrer();
-    if (!success) return res.status(400).json({ message: "Impossible de démarrer la partie (nombre de joueurs insuffisant)" });
+    const result = game.demarrer();
+    if (!result.success) return res.status(400).json({ message: result.message });
     res.json({ message: "Partie démarrée" });
 };
 
 export const getEtatPartie    = (req, res) => res.json(game.getGameState());
 export const getTempsEcoule   = (req, res) => res.json({ tempsEcoule: game.getTempsEcoule() });
-export const getDureeRestante = (req, res) => res.json({ dureeRestante: game.getDureeRestante() });
 
 export const getClassement = (req, res) => {
     if (!game.verifierFinPartie())
@@ -67,6 +84,7 @@ export const repandreRumeur = (req, res) => {
 
     res.json(result);
 };
+
 export const gelerJoueur = (req, res) => {
     const { playerId, cibleId } = req.body;
 
@@ -80,4 +98,75 @@ export const gelerJoueur = (req, res) => {
     if (!result.success) return res.status(400).json({ message: result.message });
 
     res.json(result);
+};
+
+// ── Insider Trading ──────────────────────────────────────────────────────────
+export const insiderTrading = (req, res) => {
+    const { playerId, actionId } = req.body;
+
+    const playerIdInt = parseInt(playerId);
+    const actionIdInt = parseInt(actionId);
+
+    if (isNaN(playerIdInt) || isNaN(actionIdInt))
+        return res.status(400).json({ message: "playerId et actionId doivent être des entiers" });
+
+    const result = game.insiderTrading(playerIdInt, actionIdInt);
+    if (!result.success) return res.status(400).json({ message: result.message });
+
+    res.json(result);
+};
+
+// ── Short Selling ────────────────────────────────────────────────────────────
+export const ouvrirShort = (req, res) => {
+    const { playerId, actionId, quantite } = req.body;
+
+    const playerIdInt = parseInt(playerId);
+    const actionIdInt = parseInt(actionId);
+    const quantiteInt = parseInt(quantite);
+
+    if (isNaN(playerIdInt) || isNaN(actionIdInt) || isNaN(quantiteInt))
+        return res.status(400).json({ message: "playerId, actionId et quantite doivent être des entiers" });
+
+    const result = game.ouvrirShort(playerIdInt, actionIdInt, quantiteInt);
+    if (!result.success) return res.status(400).json({ message: result.message });
+
+    res.json(result);
+};
+
+export const fermerShort = (req, res) => {
+    const { playerId, actionId, quantite } = req.body;
+
+    const playerIdInt = parseInt(playerId);
+    const actionIdInt = parseInt(actionId);
+    const quantiteInt = parseInt(quantite);
+
+    if (isNaN(playerIdInt) || isNaN(actionIdInt) || isNaN(quantiteInt))
+        return res.status(400).json({ message: "playerId, actionId et quantite doivent être des entiers" });
+
+    const result = game.fermerShort(playerIdInt, actionIdInt, quantiteInt);
+    if (!result.success) return res.status(400).json({ message: result.message });
+
+    res.json(result);
+};
+
+export const getShortPositions = (req, res) => {
+    const playerIdInt = parseInt(req.params.playerId);
+    if (isNaN(playerIdInt))
+        return res.status(400).json({ message: "playerId invalide" });
+
+    res.json({ shorts: game.getShortPositions(playerIdInt) });
+};
+
+// ── Lobby : prêt ─────────────────────────────────────────────────────────────
+export const setPlayerReady = (req, res) => {
+    const { playerId, ready } = req.body;
+    const playerIdInt = parseInt(playerId);
+
+    if (isNaN(playerIdInt))
+        return res.status(400).json({ message: "playerId invalide" });
+
+    const success = game.setPlayerReady(playerIdInt, ready !== false);
+    if (!success) return res.status(404).json({ message: "Joueur introuvable" });
+
+    res.json({ message: "Statut mis à jour", players: game.getPlayers() });
 };
