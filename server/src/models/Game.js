@@ -34,6 +34,18 @@ class Game {
         return true;
     }
 
+    removePlayer(playerId) {
+        this.players = this.players.filter(p => p.id !== playerId);
+        delete this._shortPositions[playerId];
+        if (this.players.length === 0 && this.started) {
+            this.terminer();
+            this.preparerNouvellePartie();
+        } else if (this.players.length === 0) {
+            this.preparerNouvellePartie();
+        }
+        this._onGameEnd?.({ playerLeft: true }); // notify or just update state
+    }
+
     getPlayers() {
         return this.players.map(p => ({
             id: p.id,
@@ -54,10 +66,12 @@ class Game {
     }
 
     preparerNouvellePartie() {
+        const currentIO = this.market._io;
         this.players  = [];
         this.finished = false;
         this.started  = false;
         this.market   = new MarketEngine();
+        this.market._io = currentIO;
         this.timer    = new GameTimer();
         this._derniereRumeur = {};
         this._stats = null;
@@ -427,6 +441,7 @@ class Game {
             started:          this.started,
             finished:         this.finished,
             nbJoueurs:        this.players.length,
+            joueurs:          this.getPlayers(),
             // ⚠ PLUS DE TEMPS AFFICHÉ — seulement le temps écoulé formaté (sans total)
             tempsEcoule:      this._formatDuree(this.getTempsEcoule()),
             regime:           this.market.getRegime(),

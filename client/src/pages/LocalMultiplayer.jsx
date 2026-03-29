@@ -1,19 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate }       from 'react-router-dom';
 import { 
-    AreaChart, Area, XAxis, YAxis, Tooltip, 
+    AreaChart, Area, XAxis, YAxis, 
     ResponsiveContainer, CartesianGrid 
 } from 'recharts';
-import { getSocket, reconnectSocket } from '../services/socket.js';
+import { getSocket } from '../services/socket.js';
 import { 
     ajouterJoueur, acheterAction, vendreAction, 
-    getPortefeuille, demarrerPartie 
+    getPortefeuille, demarrerPartie,
+    repandreRumeur, insiderTrading, gelerJoueur,
+    resetPartie
 } from '../services/api.js';
 import AnimatedBackground     from '../components/AnimatedBackground.jsx';
 import './Game.css'; // On réutilise les styles de base du jeu
 import './LocalMultiplayer.css'; // Avec des ajustements pour le split-screen
 
-const COULEURS_ACTIONS = ['#00ff88', '#00c9ff', '#ff6b6b', '#ffd93d', '#c084fc'];
 
 export default function LocalMultiplayer() {
     const navigate = useNavigate();
@@ -29,28 +30,40 @@ export default function LocalMultiplayer() {
     // ── État Joueur 2 ──────────────────────────────────────────────────
     const [p2, setP2] = useState({ id: null, solde: 10000, patrimoine: 10000, portefeuille: {} });
 
-    const [message, setMessage] = useState('');
+    const initRef = useRef(false);
 
-    // ── Initialisation — Inscription 2 Joueurs ───────────────────────────
     useEffect(() => {
+        if (initRef.current) return;
+        initRef.current = true;
+
         const setup = async () => {
             try {
-                // On s'assure d'être sur localhost pour le split-screen sans sessionToken bloquant ?
-                // On utilise des pseudos uniques pour forcer la création locale
+                await resetPartie();
                 const res1 = await ajouterJoueur('Joueur 1 (Gauche)');
                 const res2 = await ajouterJoueur('Joueur 2 (Droite)');
 
                 setP1(prev => ({ ...prev, id: res1.data.joueur.id }));
                 setP2(prev => ({ ...prev, id: res2.data.joueur.id }));
 
-                // On démarre la partie immédiatement (mode local arcade)
                 await demarrerPartie();
             } catch (err) {
                 console.error("Erreur setup local :", err);
-                setMessage("❌ Erreur d'initialisation du duel local");
             }
         };
         setup();
+    }, []);
+
+    const [p1Message, setP1Message] = useState('');
+    const [p2Message, setP2Message] = useState('');
+
+    const setTempMessage = useCallback((isP1, msg) => {
+        if (isP1) {
+            setP1Message(msg);
+            setTimeout(() => setP1Message(''), 5000);
+        } else {
+            setP2Message(msg);
+            setTimeout(() => setP2Message(''), 5000);
+        }
     }, []);
 
     // ── Socket.IO — Marché Partagé ──────────────────────────────────────
@@ -59,13 +72,18 @@ export default function LocalMultiplayer() {
         socket.on('market:update', (data) => setActions(data.actions));
         socket.on('market:regime', (data) => setRegime(data));
         socket.on('game:end', (data) => navigate('/classement', { state: data }));
+        socket.on('game:message', (data) => {
+            if (data.playerId === p1.id) setTempMessage(true, `🧊 ${data.message}`);
+            if (data.playerId === p2.id) setTempMessage(false, `🧊 ${data.message}`);
+        });
         
         return () => {
             socket.off('market:update');
             socket.off('market:regime');
             socket.off('game:end');
+            socket.off('game:message');
         };
-    }, [navigate]);
+    }, [navigate, p1.id, p2.id, setTempMessage]);
 
     // ── Rafraîchir Portefeuilles ─────────────────────────────────────────
     const refreshData = useCallback(async () => {
@@ -86,31 +104,70 @@ export default function LocalMultiplayer() {
                 patrimoine: r2.data.patrimoine, 
                 portefeuille: r2.data.portefeuille 
             }));
-        } catch {}
+        } catch (err) { console.error(err); }
     }, [p1.id, p2.id]);
 
+    // Fetch initial ou manuel après transaction (sans boucle de 3 secondes)
     useEffect(() => {
-        const interval = setInterval(refreshData, 2000);
-        return () => clearInterval(interval);
+        refreshData();
     }, [refreshData]);
 
+    // Calcul PnL + patrimoine en local basé sur l'évolution WebSockets du marché
+    useEffect(() => {
+        if (!actions.length) return;
+
+        const updateState = (prev) => {
+            if (!prev.id || Object.keys(prev.portefeuille).length === 0) return prev;
+            let nouveauPatrimoine = prev.solde;
+            let changed = false;
+            const newPF = { ...prev.portefeuille };
+            for (const id in newPF) {
+                const ligne = newPF[id];
+                const action = actions.find(a => a.id === parseInt(id));
+                if (action) {
+                    nouveauPatrimoine += ligne.quantite * action.prix;
+                    if (ligne.prixActuel !== action.prix) {
+                        ligne.prixActuel = action.prix;
+                        ligne.valeurTotale = parseFloat((ligne.quantite * action.prix).toFixed(2));
+                        ligne.plusValueLatente = parseFloat(((action.prix - ligne.prixMoyenAchat) * ligne.quantite).toFixed(2));
+                        ligne.pourcentageEvolution = parseFloat((((action.prix - ligne.prixMoyenAchat) / ligne.prixMoyenAchat) * 100).toFixed(2));
+                        changed = true;
+                    }
+                }
+            }
+            if (changed || Math.abs(prev.patrimoine - nouveauPatrimoine) > 0.01) {
+                return { ...prev, portefeuille: newPF, patrimoine: nouveauPatrimoine };
+            }
+            return prev;
+        };
+
+        setP1(updateState);
+        setP2(updateState);
+    }, [actions]);
+
     // ── Trading Logic (Générique) ────────────────────────────────────────
-    const trade = async (playerId, actionId, type) => {
+    const trade = useCallback(async (playerId, actionId, type) => {
         try {
             if (type === 'achat') await acheterAction(playerId, actionId, 1);
             else await vendreAction(playerId, actionId, 1);
             refreshData();
-        } catch {}
-    };
+        } catch (err) { 
+            const msg = err.response?.data?.message || 'Erreur trading';
+            setTempMessage(playerId === p1.id, `❌ ${msg}`);
+        }
+    }, [p1.id, refreshData, setTempMessage]);
 
-    const specialAction = async (playerId, type, data) => {
+    const specialAction = useCallback(async (playerId, type, data) => {
         try {
             if (type === 'rumeur') await repandreRumeur(playerId, actionSelectionnee, data.positif);
             if (type === 'insider') await insiderTrading(playerId, actionSelectionnee);
             if (type === 'geler')  await gelerJoueur(playerId, data.cibleId);
             refreshData();
-        } catch {}
-    };
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Erreur action';
+            setTempMessage(playerId === p1.id, `❌ ${msg}`);
+        }
+    }, [p1.id, actionSelectionnee, refreshData, setTempMessage]);
 
     // ── Keyboard Shortcuts (Raccourcis duel) ──────────────────────────────
     useEffect(() => {
@@ -139,7 +196,7 @@ export default function LocalMultiplayer() {
 
         window.addEventListener('keydown', handleKeys);
         return () => window.removeEventListener('keydown', handleKeys);
-    }, [p1.id, p2.id, actionSelectionnee, actions.length]);
+    }, [p1.id, p2.id, actionSelectionnee, actions.length, specialAction, trade]);
 
     // ── Calculs Formats Graphe ────────────────────────────────────────────
     const actionCourante = actions.find(a => a.id === actionSelectionnee);
@@ -151,6 +208,11 @@ export default function LocalMultiplayer() {
         }));
     };
 
+    const handleQuitterDuel = async () => {
+        try { await resetPartie(); } catch (e) { console.error(e); }
+        navigate('/');
+    };
+
     return (
         <div className="jeu-page local-multiplayer">
             <AnimatedBackground />
@@ -160,7 +222,7 @@ export default function LocalMultiplayer() {
                 <div className="header-duel-info">
                     <span className="logo-duel">⚔️ DUEL LOCAL</span>
                     <div className="phase-shared">🏦 {regime.label}</div>
-                    <button className="btn-quit" onClick={() => navigate('/')}>Quitter le duel</button>
+                    <button className="btn-quit" onClick={handleQuitterDuel}>Quitter le duel</button>
                 </div>
             </header>
 
@@ -175,7 +237,7 @@ export default function LocalMultiplayer() {
                             </linearGradient>
                         </defs>
                         <CartesianGrid stroke="#21262d" strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="time" hide reversed={true} />
+                        <XAxis dataKey="time" hide reversed={false} />
                         <YAxis stroke="#8b949e" domain={['auto', 'auto']} orientation="right" width={40} />
                         <Area type="linear" dataKey="prix" stroke="#00ff88" strokeWidth={3} fillOpacity={1} fill="url(#colorDuel)" />
                     </AreaChart>
@@ -195,6 +257,7 @@ export default function LocalMultiplayer() {
                         <div className="p-wealth">📊 {p1.patrimoine.toFixed(0)} €</div>
                     </div>
                     <div className="p-cash">💰 Cash: {p1.solde.toFixed(2)} €</div>
+                    {p1Message && <div className="jeu-message" style={{position: 'static', margin: '10px 0', fontSize: '0.9rem'}}>{p1Message}</div>}
                     
                     <div className="p-shortcuts">
                         <span><strong>(A)</strong> Achat</span>
@@ -224,6 +287,7 @@ export default function LocalMultiplayer() {
                         <div className="p-wealth">📊 {p2.patrimoine.toFixed(0)} €</div>
                     </div>
                     <div className="p-cash">💰 Cash: {p2.solde.toFixed(2)} €</div>
+                    {p2Message && <div className="jeu-message" style={{position: 'static', margin: '10px 0', fontSize: '0.9rem'}}>{p2Message}</div>}
 
                     <div className="p-shortcuts">
                         <span><strong>(I)</strong> Achat</span>

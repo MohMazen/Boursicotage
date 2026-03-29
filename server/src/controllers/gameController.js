@@ -64,6 +64,23 @@ export const terminerPartie = (req, res) => {
     res.json({ message: "Partie terminée manuellement", classement: game.calculerClassement() });
 };
 
+export const quitterPartie = (req, res) => {
+    const { playerId } = req.body;
+    if (playerId) {
+        game.removePlayer(parseInt(playerId));
+    }
+    const io = game.market._io;
+    if (io) {
+        io.emit('lobby:update', { players: game.getPlayers() });
+    }
+    res.json({ message: "Vous avez quitté la partie" });
+};
+
+export const resetPartie = (req, res) => {
+    game.preparerNouvellePartie();
+    res.json({ message: "La partie complète a été fermée et réinitialisée" });
+};
+
 export const getActions          = (req, res) => res.json({ actions: game.market.getAllStocks() });
 export const getDernierEvenement = (req, res) => res.json({ evenement: game.market.getDernierEvenement() });
 

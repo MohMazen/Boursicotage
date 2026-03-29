@@ -78,7 +78,7 @@ export default function Home() {
                 <div className="home-carte home-mode-selection">
                     <button className="home-mode-bouton home-mode-hote" onClick={() => setMode('hote')}>
                         <span className="mode-icon">🏠</span>
-                        <span className="mode-label">Je suis l'hôte</span>
+                        <span className="mode-label">Je suis l&apos;hôte</span>
                         <span className="mode-desc">Héberger la partie sur ce PC</span>
                     </button>
                     <button className="home-mode-bouton home-mode-rejoindre" onClick={() => setMode('rejoindre')}>
@@ -117,7 +117,7 @@ export default function Home() {
 
                     {mode === 'rejoindre' && (
                         <div className="home-ip-input-wrapper">
-                            <label className="home-ip-label">Adresse IP de l'hôte :</label>
+                            <label className="home-ip-label">Adresse IP de l&apos;hôte :</label>
                             <input
                                 className="home-champ"
                                 type="text"

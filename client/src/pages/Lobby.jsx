@@ -151,7 +151,7 @@ export default function Lobby() {
                                 level="M"
                             />
                         </div>
-                        <p className="lobby-qr-hint">Scanne ce QR code ou entre l'adresse ci-dessus</p>
+                        <p className="lobby-qr-hint">Scanne ce QR code ou entre l&apos;adresse ci-dessus</p>
                     </div>
                 )}
             </div>

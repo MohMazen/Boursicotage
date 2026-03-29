@@ -12,7 +12,9 @@ import {
     ouvrirShort,
     fermerShort,
     getShortPositions,
-    setPlayerReady
+    setPlayerReady,
+    quitterPartie,
+    resetPartie
 } from '../controllers/gameController.js';
 
 const router = express.Router();
@@ -21,6 +23,8 @@ router.route('/game/start').post(demarrerPartie);
 router.route('/game/end').post(terminerPartie);
 router.route('/game/state').get(getEtatPartie);
 router.route('/game/classement').get(getClassement);
+router.route('/game/leave').post(quitterPartie);
+router.route('/game/reset').post(resetPartie);
 
 // ─── Marché ─────────────────────────────────────────────────────────────────
 router.route('/market/actions').get(getActions);

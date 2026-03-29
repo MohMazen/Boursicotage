@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import AnimatedBackground from '../components/AnimatedBackground.jsx';
@@ -13,7 +13,7 @@ export default function Classement() {
 
     // Données reçues via navigation state (émises par game:end)
     const data = location.state || {};
-    const classement = data.classement || [];
+    const classement = useMemo(() => data.classement || [], [data.classement]);
     const stats = data.stats || {};
     const dureePartie = data.dureePartie || stats.dureePartie;
 
@@ -52,7 +52,7 @@ export default function Classement() {
                 });
             }, 400);
         }, 800 * classement.length + 200);
-    }, [classement.length]);
+    }, [classement, classement.length]);
 
     const formatDuree = (ms) => {
         if (!ms) return '—';

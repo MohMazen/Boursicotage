@@ -1,215 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { getSocket } from '../services/socket.js';
-import {
-    acheterAction, vendreAction, repandreRumeur, gelerJoueur,
-    insiderTrading, ouvrirShort, fermerShort,
-    getPortefeuille, getShortPositions as fetchShortPositions
-} from '../services/api.js';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GameProvider, useGameContext } from '../contexts/GameContext.jsx';
 import './Game.css';
 
 const COULEURS_ACTIONS = ['#00ff88', '#00c9ff', '#ff6b6b', '#ffd93d', '#c084fc'];
 
 export default function Game() {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
     const pseudo = searchParams.get('pseudo') || 'Joueur';
     const playerId = parseInt(searchParams.get('playerId'));
 
-    // ── État principal ───────────────────────────────────────────────────
-    const [actions, setActions] = useState([]);
-    const [actionSelectionnee, setActionSelectionnee] = useState(1);
-    const [solde, setSolde] = useState(10000);
-    const [patrimoine, setPatrimoine] = useState(10000);
-    const [portefeuille, setPortefeuille] = useState({});
-    const [shortPositions, setShortPositions] = useState({});
-    const [dernierEvenement, setDernierEvenement] = useState(null);
-    const [regime, setRegime] = useState({ regime: 'normal', label: 'Marché normal' });
+    // Prevent rendering if playerId is invalid to avoid weird API errors
+    if (!playerId) return <div>Chargement...</div>;
 
-    // ── Trading ──────────────────────────────────────────────────────────
+    return (
+        <GameProvider pseudo={pseudo} playerId={playerId}>
+            <GameUI />
+        </GameProvider>
+    );
+}
+
+function GameUI() {
+    const {
+        playerId, pseudo,
+        actions, actionSelectionnee, setActionSelectionnee,
+        solde, patrimoine, portefeuille, shortPositions,
+        dernierEvenement, regime, message, joueurs, insiderInfo,
+        tensionLevel, tensionMessage, phaseMarche,
+        handleQuitter, handleAcheter, handleVendre,
+        handleRumeur, handleGeler, handleInsider,
+        handleOuvrirShort, handleFermerShort
+    } = useGameContext();
+
+    // ── Form States (UI only) ────────────────────────────────────────────
     const [quantite, setQuantite] = useState(1);
-    const [shortQuantite, setShortQuantite] = useState(1);
-    const [message, setMessage] = useState('');
-
-    // ── Actions spéciales ────────────────────────────────────────────────
+    const [shortQuantite] = useState(1);
     const [rumeurAction, setRumeurAction] = useState(1);
     const [gelerCible, setGelerCible] = useState('');
     const [insiderAction, setInsiderAction] = useState(1);
-    const [insiderInfo, setInsiderInfo] = useState(null);
-    const [joueurs, setJoueurs] = useState([]);
 
-    // ── Tension ──────────────────────────────────────────────────────────
-    const [tensionLevel, setTensionLevel] = useState(0);
-    const [tensionMessage, setTensionMessage] = useState('');
-    const [phaseMarche, setPhaseMarche] = useState('Marché ouvert');
-
-    // ── Socket.IO — écouter les mises à jour temps réel ──────────────────
+    // Auto-select opponent for geler action if there's only 1 opponent
     useEffect(() => {
-        const socket = getSocket();
-
-        socket.on('market:update', (data) => {
-            setActions(data.actions);
-        });
-
-        socket.on('market:event', (evt) => {
-            setDernierEvenement(evt);
-        });
-
-        socket.on('market:regime', (data) => {
-            setRegime(data);
-            setPhaseMarche(data.label);
-        });
-
-        socket.on('game:tension', (data) => {
-            setTensionLevel(data.level);
-            setTensionMessage(data.message);
-            // Réinitialiser après 8 secondes pour l'alerte suivante
-            setTimeout(() => {
-                if (data.level < 3) setTensionLevel(0);
-            }, 8000);
-        });
-
-        socket.on('game:end', (data) => {
-            navigate(`/classement?pseudo=${pseudo}&playerId=${playerId}`, {
-                state: data
-            });
-        });
-
-        socket.on('game:state', (data) => {
-            if (data.actions) setActions(data.actions);
-            if (data.regime) setRegime(data.regime);
-        });
-
-        return () => {
-            socket.off('market:update');
-            socket.off('market:event');
-            socket.off('market:regime');
-            socket.off('game:tension');
-            socket.off('game:end');
-            socket.off('game:state');
-        };
-    }, [navigate, pseudo, playerId]);
-
-    // ── Rafraîchir le portefeuille ───────────────────────────────────────
-    const refreshPortefeuille = useCallback(async () => {
-        if (!playerId) return;
-        try {
-            const res = await getPortefeuille(playerId);
-            setSolde(res.data.solde);
-            setPortefeuille(res.data.portefeuille);
-            setPatrimoine(res.data.patrimoine);
-        } catch {}
-        try {
-            const res = await fetchShortPositions(playerId);
-            setShortPositions(res.data.shorts || {});
-        } catch {}
-    }, [playerId]);
-
-    useEffect(() => {
-        const interval = setInterval(refreshPortefeuille, 3000);
-        refreshPortefeuille();
-        return () => clearInterval(interval);
-    }, [refreshPortefeuille]);
-
-    // ── Fonctions de trading ─────────────────────────────────────────────
-    const handleAcheter = async (actionId) => {
-        try {
-            const res = await acheterAction(playerId, actionId, quantite);
-            setSolde(res.data.solde);
-            setPortefeuille(res.data.portefeuille);
-            setPatrimoine(res.data.patrimoine);
-            setMessage(`✅ Achat réussi`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
+        if (!gelerCible && joueurs.length > 0) {
+            const opponent = joueurs.find(j => j.id !== playerId);
+            if (opponent) setGelerCible(opponent.id.toString());
         }
-    };
-
-    const handleVendre = async (actionId) => {
-        try {
-            const res = await vendreAction(playerId, actionId, quantite);
-            setSolde(res.data.solde);
-            setPortefeuille(res.data.portefeuille);
-            setPatrimoine(res.data.patrimoine);
-            setMessage(`✅ Vente réussie`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
-
-    const handleRumeur = async (positif) => {
-        try {
-            const res = await repandreRumeur(playerId, rumeurAction, positif);
-            setSolde(res.data.solde);
-            setMessage(`✅ ${res.data.message}`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
-
-    const handleGeler = async () => {
-        const cibleIdInt = parseInt(gelerCible);
-        if (isNaN(cibleIdInt)) return;
-        try {
-            const res = await gelerJoueur(playerId, cibleIdInt);
-            setSolde(res.data.solde);
-            setMessage(`✅ ${res.data.message}`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
-
-    const handleInsider = async () => {
-        try {
-            const res = await insiderTrading(playerId, insiderAction);
-            setSolde(res.data.solde);
-            setInsiderInfo({
-                actionNom: res.data.actionNom,
-                tendance: res.data.tendance,
-                expireAt: Date.now() + res.data.duree * 1000
-            });
-            setTimeout(() => setInsiderInfo(null), res.data.duree * 1000);
-            setMessage(`✅ Info insider reçue`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
-
-    const handleOuvrirShort = async (actionId) => {
-        try {
-            const res = await ouvrirShort(playerId, actionId, shortQuantite);
-            setSolde(res.data.solde);
-            setShortPositions(res.data.shortPositions);
-            setMessage(`✅ ${res.data.message}`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
-
-    const handleFermerShort = async (actionId, qty) => {
-        try {
-            const res = await fermerShort(playerId, actionId, qty);
-            setSolde(res.data.solde);
-            setShortPositions(res.data.shortPositions);
-            setMessage(`✅ ${res.data.message}`);
-            setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
-            setMessage(`❌ ${err.response?.data?.message || 'Erreur'}`);
-            setTimeout(() => setMessage(''), 3000);
-        }
-    };
+    }, [joueurs, playerId, gelerCible]);
 
     // ── Calculs utilitaires ──────────────────────────────────────────────
     const actionCourante = actions.find(a => a.id === actionSelectionnee);
@@ -219,11 +57,11 @@ export default function Game() {
 
     const getHistoriqueFormate = (action) => {
         if (!action?.historique) return [];
-        // On ne garde que les 120 derniers points (déjà géré par le serveur mais sécurité)
+        // On ne garde que les 120 derniers points
         return action.historique.map((point, i, arr) => {
             const ageTicks = arr.length - 1 - i;
             return { 
-                time: ageTicks, // On utilise l'age en ticks pour l'axe
+                time: ageTicks,
                 label: ageTicks === 0 ? 'Maintenant' : `-${ageTicks}s`,
                 prix: point.prix 
             };
@@ -268,18 +106,58 @@ export default function Game() {
                     <span className="jeu-pseudo">{pseudo}</span>
                     <span className="jeu-solde">💰 {solde.toFixed(2)} €</span>
                     <span className="jeu-patrimoine">📊 {patrimoine.toFixed(2)} €</span>
+                    <button className="bouton-vendre bouton-small" style={{marginLeft: '10px'}} onClick={handleQuitter}>🚪 Quitter</button>
                 </div>
             </header>
 
-            {/* ── Message flash ── */}
-            {message && <div className="jeu-message">{message}</div>}
+            {/* ── Message flash et alertes en Floating Overlay ── */}
+            <div style={{ position: 'fixed', top: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', zIndex: 9999, pointerEvents: 'none' }}>
+                <AnimatePresence>
+                    {message && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                            className="jeu-message"
+                            style={{ position: 'relative', margin: 0, boxShadow: '0 8px 16px rgba(0,0,0,0.5)', pointerEvents: 'auto' }}
+                        >
+                            {message}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-            {/* ── Insider Info (discret) ── */}
-            {insiderInfo && (
-                <div className="insider-info">
-                    🔍 <strong>{insiderInfo.actionNom}</strong> : tendance <span className={`insider-tendance insider-${insiderInfo.tendance}`}>{insiderInfo.tendance}</span>
-                </div>
-            )}
+                {/* ── Insider Info (très visible) ── */}
+                <AnimatePresence>
+                    {insiderInfo && (
+                        <motion.div 
+                            initial={{ opacity: 0, x: 50, scale: 0.8 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8, x: -50 }}
+                            className="insider-info"
+                            style={{ 
+                                position: 'relative', margin: 0, background: 'rgba(255, 215, 0, 0.15)', 
+                                border: '2px solid #ffd700', borderRadius: '12px', padding: '12px 24px', 
+                                boxShadow: '0 0 20px rgba(255, 215, 0, 0.4)', pointerEvents: 'auto'
+                            }}
+                        >
+                            🔍 <strong>{insiderInfo.actionNom}</strong> : tendance <span className={`insider-tendance insider-${insiderInfo.tendance}`}>{insiderInfo.tendance}</span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+            
+            {/* ── Overlay Tension (Rouge clignotant progressif) ── */}
+            <AnimatePresence>
+                {tensionLevel > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0.1, tensionLevel * 0.15, 0.1] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                        exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', inset: 0, background: 'red', pointerEvents: 'none', zIndex: 900, mixBlendMode: 'overlay' }}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* ── Contenu principal ── */}
             <div className="jeu-contenu">
@@ -318,15 +196,14 @@ export default function Game() {
                                 dataKey="time" 
                                 stroke="#8b949e" 
                                 tick={{ fontSize: 10 }} 
-                                reversed={true} // Inverser pour aller de -120 à 0
+                                reversed={false}
+                                minTickGap={20}
                                 tickFormatter={(tick) => {
                                     if (tick === 0) return 'Dernier';
-                                    if (tick === 60) return '-1min';
-                                    if (tick === 120) return '-2min';
-                                    return ''; // On ne garde que 3 labels pour la clarté
+                                    if (tick === 60) return '-1m';
+                                    if (tick === 119 || tick === 120) return '-2m';
+                                    return '';
                                 }}
-                                interval={0} // On force l'affichage de nos labels choisis
-                                hide={false}
                             />
                             <YAxis
                                 stroke="#8b949e"
@@ -397,7 +274,6 @@ export default function Game() {
                                 {actions.map((a) => {
                                     const tendance = getTendance(a);
                                     const evolution = getEvolution(a);
-                                    const insuffisant = solde < a.prix * quantite;
                                     return (
                                         <tr key={a.id}>
                                             <td className="marche-nom">{a.nom} <span className="marche-secteur">{a.secteur}</span></td>
@@ -408,7 +284,7 @@ export default function Game() {
                                             <td>
                                                 <button
                                                     className="bouton-acheter"
-                                                    onClick={() => handleAcheter(a.id)}
+                                                    onClick={() => handleAcheter(a.id, quantite)}
                                                     disabled={solde < a.prix * quantite}
                                                     title={solde < a.prix * quantite ? 'Solde insuffisant' : ''}
                                                 >
@@ -416,12 +292,12 @@ export default function Game() {
                                                 </button>
                                             </td>
                                             <td>
-                                                <button className="bouton-vendre" onClick={() => handleVendre(a.id)}>
+                                                <button className="bouton-vendre" onClick={() => handleVendre(a.id, quantite)}>
                                                     Vendre ({quantite})
                                                 </button>
                                             </td>
                                             <td>
-                                                <button className="bouton-short" onClick={() => handleOuvrirShort(a.id)}>
+                                                <button className="bouton-short" onClick={() => handleOuvrirShort(a.id, shortQuantite)}>
                                                     Short
                                                 </button>
                                             </td>
@@ -447,7 +323,7 @@ export default function Game() {
                         <h2 className="jeu-carte-titre">💼 Mon Portefeuille</h2>
 
                         {Object.keys(portefeuille).length === 0 && Object.keys(shortPositions).length === 0 ? (
-                            <p className="portefeuille-vide">Tu ne possèdes aucune action pour l'instant.</p>
+                            <p className="portefeuille-vide">Tu ne possèdes aucune action pour l&apos;instant.</p>
                         ) : (
                             <>
                                 {/* Positions longues */}
@@ -535,51 +411,54 @@ export default function Game() {
                         {/* Rumeur positive */}
                         <div className="special-carte">
                             <h3 className="special-titre">📢 Rumeur Positive</h3>
-                            <p className="special-description">Fait monter le prix d'une action. Coûte 500 €.</p>
+                            <p className="special-description">Fait monter le prix d&apos;une action. Coûte 500 €.</p>
                             <select className="special-selection" value={rumeurAction} onChange={e => setRumeurAction(parseInt(e.target.value))}>
                                 {actions.map((a) => (
                                     <option key={a.id} value={a.id}>{a.nom}</option>
                                 ))}
                             </select>
-                            <button className="special-bouton special-bouton-vert" onClick={() => handleRumeur(true)}>Lancer</button>
+                            <button className="special-bouton special-bouton-vert" onClick={() => handleRumeur(rumeurAction, true)}>Lancer</button>
                         </div>
 
                         {/* Rumeur négative */}
                         <div className="special-carte">
                             <h3 className="special-titre">📉 Rumeur Négative</h3>
-                            <p className="special-description">Fait baisser le prix d'une action. Coûte 500 €.</p>
+                            <p className="special-description">Fait baisser le prix d&apos;une action. Coûte 500 €.</p>
                             <select className="special-selection" value={rumeurAction} onChange={e => setRumeurAction(parseInt(e.target.value))}>
                                 {actions.map((a) => (
                                     <option key={a.id} value={a.id}>{a.nom}</option>
                                 ))}
                             </select>
-                            <button className="special-bouton special-bouton-rouge" onClick={() => handleRumeur(false)}>Lancer</button>
+                            <button className="special-bouton special-bouton-rouge" onClick={() => handleRumeur(rumeurAction, false)}>Lancer</button>
                         </div>
 
                         {/* Geler un joueur */}
                         <div className="special-carte">
                             <h3 className="special-titre">🧊 Geler un Joueur</h3>
                             <p className="special-description">Bloque un adversaire pendant 45s. Coûte 1000 €.</p>
-                            <input
-                                type="number"
+                            <select
                                 className="special-selection"
-                                placeholder="ID joueur cible"
                                 value={gelerCible}
                                 onChange={e => setGelerCible(e.target.value)}
-                            />
-                            <button className="special-bouton special-bouton-bleu" onClick={handleGeler}>Geler</button>
+                            >
+                                <option value="">Choisir un joueur</option>
+                                {joueurs.filter(j => j.id !== playerId).map(j => (
+                                    <option key={j.id} value={j.id}>{j.name}</option>
+                                ))}
+                            </select>
+                            <button className="special-bouton special-bouton-bleu" onClick={() => handleGeler(gelerCible)}>Geler</button>
                         </div>
 
                         {/* Insider Trading */}
                         <div className="special-carte">
                             <h3 className="special-titre">🔍 Insider Trading</h3>
-                            <p className="special-description">Révèle la tendance d'une action pendant 10s. Coûte 1500 €. (2 max)</p>
+                            <p className="special-description">Révèle la tendance d&apos;une action pendant 10s. Coûte 1500 €. (2 max)</p>
                             <select className="special-selection" value={insiderAction} onChange={e => setInsiderAction(parseInt(e.target.value))}>
                                 {actions.map((a) => (
                                     <option key={a.id} value={a.id}>{a.nom}</option>
                                 ))}
                             </select>
-                            <button className="special-bouton special-bouton-jaune" onClick={handleInsider}>Révéler</button>
+                            <button className="special-bouton special-bouton-jaune" onClick={() => handleInsider(insiderAction)}>Révéler</button>
                         </div>
 
                     </div>

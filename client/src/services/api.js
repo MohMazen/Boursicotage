@@ -48,6 +48,8 @@ export const demarrerPartie     = () => api.post('/game/start');
 export const terminerPartie     = () => api.post('/game/end');
 export const getEtatPartie      = () => api.get('/game/state');
 export const getClassement      = () => api.get('/game/classement');
+export const resetPartie        = () => api.post('/game/reset');
+export const quitterPartie      = (playerId) => api.post('/game/leave', { playerId });
 
 // ── Marché ───────────────────────────────────────────────────────────────────
 export const getActions         = () => api.get('/market/actions');

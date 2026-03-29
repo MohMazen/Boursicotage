@@ -3,7 +3,7 @@ import os            from 'os';
 import { createServer } from 'http';
 import { Server }    from 'socket.io';
 import cors          from 'cors';
-import path          from 'path';
+
 import playerRoutes      from './routes/playerRoutes.js';
 import gameRoutes        from './routes/gameRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
