@@ -1,4 +1,4 @@
-/* ── Page entière ── */
+
 .home-page {
     min-height: 100vh;
     background-color: #0d1117;
@@ -8,13 +8,13 @@
     justify-content: center;
 }
 
-/* ── Contenu au dessus du canvas ── */
+
 .home-page > *:not(canvas) {
     position: relative;
     z-index: 1;
 }
 
-/* ── Titre ── */
+
 .home-titre {
     font-size: 3rem;
     color: #00ff88;
@@ -28,7 +28,7 @@
     margin-bottom: 40px;
 }
 
-/* ── Carte centrale ── */
+
 .home-carte {
     background-color: #161b22;
     border: 1px solid #30363d;
@@ -40,7 +40,7 @@
     gap: 16px;
 }
 
-/* ── Champ texte ── */
+
 .home-champ {
     background-color: #0d1117;
     border: 1px solid #30363d;
@@ -59,14 +59,14 @@
     color: #484f58;
 }
 
-/* ── Erreur ── */
+
 .home-erreur {
     color: #ff4d4d;
     font-size: 0.85rem;
     margin: 0;
 }
 
-/* ── Bouton ── */
+
 .home-bouton {
     background-color: #00ff88;
     color: #0d1117;
@@ -80,4 +80,75 @@
 
 .home-bouton:hover {
     background-color: #00cc6a;
+}
+
+.home-bouton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+.home-retour {
+    background: none;
+    border: none;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-align: left;
+    padding: 0;
+}
+
+.home-retour:hover {
+    color: #00ff88;
+}
+
+
+.home-mode-selection {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.home-mode-bouton {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 36px;
+    border-radius: 16px;
+    cursor: pointer;
+    width: 200px;
+    border: 1px solid #30363d;
+    background: rgba(22, 27, 34, 0.85);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.home-mode-bouton:hover {
+    transform: translateY(-4px);
+}
+
+.home-mode-local:hover {
+    border-color: #00ff88;
+    box-shadow: 0 8px 30px rgba(0, 255, 136, 0.15);
+}
+
+.home-mode-reseau:hover {
+    border-color: #4d9fff;
+    box-shadow: 0 8px 30px rgba(77, 159, 255, 0.15);
+}
+
+.mode-icon {
+    font-size: 2.4rem;
+}
+
+.mode-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e6edf3;
+}
+
+.mode-desc {
+    font-size: 0.78rem;
+    color: #8b949e;
+    text-align: center;
 }

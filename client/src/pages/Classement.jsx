@@ -1,18 +1,25 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedBackground from '../components/AnimatedBackground.jsx';
 import './Classement.css';
-
-// Données fictives
-const classement = [
-    { id: 1, name: 'Alice',   patrimoine: 14320.50 },
-    { id: 2, name: 'Bob',     patrimoine: 11200.00 },
-    { id: 3, name: 'Charlie', patrimoine: 9800.75  },
-];
 
 const medailles = ['🥇', '🥈', '🥉'];
 
 export default function Classement() {
     const navigate = useNavigate();
+    const [classement, setClassement] = useState([]);
+
+    useEffect(() => {
+        const data = localStorage.getItem('classement');
+        if (data) setClassement(JSON.parse(data));
+    }, []);
+
+    const handleRejouer = () => {
+        localStorage.removeItem('playerId');
+        localStorage.removeItem('pseudo');
+        localStorage.removeItem('classement');
+        navigate('/');
+    };
 
     return (
         <div className="classement-page">
@@ -22,7 +29,6 @@ export default function Classement() {
                 <h1 className="classement-titre">🏁 Fin de Partie</h1>
                 <p className="classement-sous-titre">Classement final</p>
 
-                {/* ── Podium ── */}
                 <div className="podium">
                     {classement.map((joueur, index) => (
                         <div key={joueur.id} className={`podium-carte ${index === 0 ? 'podium-premier' : ''}`}>
@@ -33,7 +39,7 @@ export default function Classement() {
                     ))}
                 </div>
 
-                <button className="classement-bouton" onClick={() => navigate('/')}>
+                <button className="classement-bouton" onClick={handleRejouer}>
                     Rejouer
                 </button>
             </div>

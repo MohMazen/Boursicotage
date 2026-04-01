@@ -1,4 +1,4 @@
-/* ── Page entière ── */
+
 .jeu-page {
     min-height: 100vh;
     background-color: #0d1117;
@@ -7,7 +7,7 @@
     flex-direction: column;
 }
 
-/* ── En-tête ── */
+
 .jeu-entete {
     display: flex;
     align-items: center;
@@ -56,7 +56,7 @@
     font-size: 0.95rem;
 }
 
-/* ── Contenu principal ── */
+
 .jeu-contenu {
     padding: 24px;
     display: flex;
@@ -64,7 +64,7 @@
     gap: 24px;
 }
 
-/* ── Carte générique ── */
+
 .jeu-carte {
     background-color: #161b22;
     border: 1px solid #30363d;
@@ -79,7 +79,7 @@
     letter-spacing: 1px;
 }
 
-/* ── Tableau du marché ── */
+
 .marche-tableau {
     width: 100%;
     border-collapse: collapse;
@@ -117,7 +117,7 @@
 .positif { color: #00ff88; font-weight: bold; }
 .negatif { color: #ff4d4d; font-weight: bold; }
 
-/* ── Boutons acheter / vendre ── */
+
 .bouton-acheter {
     background-color: #00ff8822;
     color: #00ff88;
@@ -142,14 +142,14 @@
 
 .bouton-vendre:hover { background-color: #ff4d4d44; }
 
-/* ── Milieu côte à côte ── */
+
 .jeu-milieu {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
 }
 
-/* ── Graphe ── */
+
 .graphe-selecteurs {
     display: flex;
     gap: 8px;
@@ -179,7 +179,7 @@
     font-weight: bold;
 }
 
-/* ── Actions spéciales ── */
+
 .special-grille {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -236,7 +236,34 @@
 .special-bouton-bleu  { background-color: #4d9fff22; color: #4d9fff; border: 1px solid #4d9fff; }
 .special-bouton-bleu:hover  { background-color: #4d9fff44; }
 
-/* ── Portefeuille vide ── */
+
+.jeu-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 10px 24px;
+    color: #e6edf3;
+    font-size: 0.95rem;
+    z-index: 100;
+}
+
+
+.marche-qte {
+    width: 55px;
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+
 .portefeuille-vide {
     color: #484f58;
     font-size: 0.9rem;

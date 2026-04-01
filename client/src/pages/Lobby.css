@@ -1,4 +1,4 @@
-/* ── Page entière ── */
+
 .lobby-page {
     min-height: 100vh;
     background-color: #0d1117;
@@ -8,13 +8,13 @@
     justify-content: center;
 }
 
-/* ── Contenu au dessus du canvas ── */
+
 .lobby-page > *:not(canvas) {
     position: relative;
     z-index: 1;
 }
 
-/* ── Titre ── */
+
 .lobby-titre {
     font-size: 2rem;
     color: #00ff88;
@@ -33,7 +33,7 @@
     font-weight: bold;
 }
 
-/* ── Carte ── */
+
 .lobby-carte {
     background-color: #161b22;
     border: 1px solid #30363d;
@@ -45,7 +45,7 @@
     gap: 16px;
 }
 
-/* ── Sous-titre joueurs ── */
+
 .lobby-sous-titre {
     color: #8b949e;
     font-size: 0.9rem;
@@ -54,7 +54,7 @@
     margin: 0;
 }
 
-/* ── Liste des joueurs ── */
+
 .lobby-liste {
     list-style: none;
     padding: 0;
@@ -82,7 +82,7 @@
     background-color: #00ff88;
 }
 
-/* ── Bouton ── */
+
 .lobby-bouton {
     background-color: #00ff88;
     color: #0d1117;
@@ -97,4 +97,23 @@
 
 .lobby-bouton:hover {
     background-color: #00cc6a;
+}
+
+.lobby-bouton:disabled {
+    background-color: #30363d;
+    color: #8b949e;
+    cursor: not-allowed;
+}
+
+.lobby-erreur {
+    color: #ff4d4d;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.lobby-attente {
+    color: #8b949e;
+    font-size: 0.8rem;
+    text-align: center;
+    margin: 0;
 }

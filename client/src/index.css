@@ -1,4 +1,4 @@
-/* ── Variables ─────────────────────────────────────────────────────────────── */
+
 :root {
   --bg: #0f0f1a;
   --bg-card: #1a1a2e;
@@ -14,7 +14,7 @@
   --font: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
-/* ── Reset ─────────────────────────────────────────────────────────────────── */
+
 *,
 *::before,
 *::after {
@@ -31,7 +31,7 @@ body {
   min-height: 100vh;
 }
 
-/* ── App layout ────────────────────────────────────────────────────────────── */
+
 .app {
   max-width: 720px;
   margin: 0 auto;
@@ -71,7 +71,7 @@ body {
   color: var(--negative);
 }
 
-/* ── Toast / message ───────────────────────────────────────────────────────── */
+
 .toast {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -93,7 +93,7 @@ body {
   }
 }
 
-/* ── Card ──────────────────────────────────────────────────────────────────── */
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -113,7 +113,7 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* ── Input group ───────────────────────────────────────────────────────────── */
+
 .input-group {
   display: flex;
   gap: 0.5rem;
@@ -138,7 +138,7 @@ body {
   color: var(--text-muted);
 }
 
-/* ── Buttons ───────────────────────────────────────────────────────────────── */
+
 button,
 .btn-start {
   background: var(--accent);
@@ -171,7 +171,6 @@ button:active,
   color: var(--text-muted);
 }
 
-/* ── Event card ────────────────────────────────────────────────────────────── */
 .event-card {
   border-left: 3px solid var(--accent);
 }
@@ -180,7 +179,7 @@ button:active,
   margin-bottom: 0.25rem;
 }
 
-/* ── Market table ──────────────────────────────────────────────────────────── */
+
 .market-table {
   width: 100%;
   border-collapse: collapse;
@@ -222,7 +221,7 @@ button:active,
   font-weight: 600;
 }
 
-/* ── Ranking ───────────────────────────────────────────────────────────────── */
+
 .ranking {
   list-style: none;
 }
