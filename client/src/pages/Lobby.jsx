@@ -9,7 +9,7 @@ import './Lobby.css';
 export default function Lobby() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const pseudo = searchParams.get('pseudo') || 'Inconnu';
+    const pseudo = searchParams.get('pseudo') || localStorage.getItem('pseudo') || 'Inconnu';
 
     const [joueurs, setJoueurs] = useState([]);
     const [playerId, setPlayerId] = useState(null);
@@ -24,10 +24,12 @@ export default function Lobby() {
             try {
                 const res = await ajouterJoueur(pseudo);
                 setPlayerId(res.data.joueur.id);
+                localStorage.setItem('playerId', res.data.joueur.id);
+                localStorage.setItem('pseudo', pseudo);
                 // Premier joueur inscrit = hôte probable
                 if (res.data.joueur.id === 1001) setIsHote(true);
             } catch (err) {
-                setErreur(err.response?.data?.message || 'Erreur lors de l\'inscription');
+                setErreur(err.response?.data?.message || "Erreur lors de l'inscription");
             }
         };
         inscrire();

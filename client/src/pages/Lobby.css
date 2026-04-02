@@ -45,7 +45,7 @@
     width: 100%;
 }
 
-/* ── Carte ── */
+
 .lobby-carte {
     background: rgba(22, 27, 34, 0.85);
     backdrop-filter: blur(12px);
@@ -187,6 +187,8 @@
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
+    background: #30363d;
+    color: #8b949e;
 }
 
 .lobby-erreur {
@@ -224,4 +226,11 @@
     font-size: 0.75rem;
     margin: 0;
     text-align: center;
+}
+
+.lobby-attente {
+    color: #8b949e;
+    font-size: 0.8rem;
+    text-align: center;
+    margin: 0;
 }

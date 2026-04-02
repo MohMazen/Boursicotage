@@ -2,19 +2,27 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import AnimatedBackground from '../components/AnimatedBackground.jsx';
+import { ajouterJoueur, demarrerPartie } from '../services/api.js';
 import { setServerIP } from '../services/api.js';
 import { reconnectSocket } from '../services/socket.js';
 import './Home.css';
 
 export default function Home() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const [mode, setMode] = useState(null); // null | 'hote' | 'rejoindre' | 'local'
+
+    // reseau
     const [pseudo, setPseudo] = useState('');
     const [erreur, setErreur] = useState('');
-    const [mode, setMode] = useState(null); // null | 'hote' | 'rejoindre'
+    const [loading, setLoading] = useState(false);
     const [ipSaisie, setIpSaisie] = useState(localStorage.getItem('boursicotage_last_ip') || '');
     const [serverIP, setLocalServerIP] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [searchParams] = useSearchParams();
+
+    // local
+    const [pseudo1, setPseudo1] = useState('');
+    const [pseudo2, setPseudo2] = useState('');
+    const [chargement, setChargement] = useState(false);
 
     // ── Détection auto de l'IP hôte via URL ──────────────────────────────────
     useEffect(() => {
@@ -62,10 +70,68 @@ export default function Home() {
         }
     };
 
+    const handleLocalJouer = async () => {
+        if (!pseudo1.trim() || !pseudo2.trim()) { setErreur('Entre les deux pseudos'); return; }
+        if (pseudo1.trim() === pseudo2.trim()) { setErreur('Les pseudos doivent être différents'); return; }
+        setErreur('');
+        setChargement(true);
+        try {
+            const res1 = await ajouterJoueur(pseudo1.trim());
+            const res2 = await ajouterJoueur(pseudo2.trim());
+            localStorage.setItem('player1Id', res1.data.joueur.id);
+            localStorage.setItem('player1Pseudo', pseudo1.trim());
+            localStorage.setItem('player2Id', res2.data.joueur.id);
+            localStorage.setItem('player2Pseudo', pseudo2.trim());
+            await demarrerPartie();
+            navigate('/local');
+        } catch (err) {
+            setErreur(err.response?.data?.message || 'Erreur de connexion au serveur');
+        } finally {
+            setChargement(false);
+        }
+    };
+
     const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
     const gameURL = mode === 'hote' && serverIP
         ? `${window.location.protocol}//${serverIP}:${currentPort}?host=${serverIP}`
         : '';
+
+    const retour = () => { setMode(null); setErreur(''); };
+
+    // Mode Local
+    if (mode === 'local') {
+        return (
+            <div className="home-page">
+                <AnimatedBackground />
+                <h1 className="home-titre">Boursicotage</h1>
+                <p className="home-sous-titre">Mode local — 2 joueurs sur le même écran</p>
+                <div className="home-carte">
+                    <button className="home-retour" onClick={retour}>← Retour</button>
+                    <input
+                        className="home-champ"
+                        type="text"
+                        placeholder="Pseudo Joueur 1..."
+                        value={pseudo1}
+                        onChange={(e) => setPseudo1(e.target.value)}
+                        disabled={chargement}
+                    />
+                    <input
+                        className="home-champ"
+                        type="text"
+                        placeholder="Pseudo Joueur 2..."
+                        value={pseudo2}
+                        onChange={(e) => setPseudo2(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleLocalJouer()}
+                        disabled={chargement}
+                    />
+                    {erreur && <p className="home-erreur">{erreur}</p>}
+                    <button className="home-bouton" onClick={handleLocalJouer} disabled={chargement}>
+                        {chargement ? 'Démarrage...' : 'Jouer'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="home-page">
@@ -86,7 +152,7 @@ export default function Home() {
                         <span className="mode-label">Je rejoins une partie</span>
                         <span className="mode-desc">Se connecter à un autre joueur</span>
                     </button>
-                    <button className="home-mode-bouton home-mode-local" onClick={() => navigate('/local')}>
+                    <button className="home-mode-bouton home-mode-local" onClick={() => setMode('local')}>
                         <span className="mode-icon">🎮</span>
                         <span className="mode-label">Duel Local (1 Écran)</span>
                         <span className="mode-desc">Jouer à deux sur ce clavier</span>
@@ -95,9 +161,9 @@ export default function Home() {
             )}
 
             {/* ── Formulaire de connexion ── */}
-            {mode && (
+            {mode && mode !== 'local' && (
                 <div className="home-carte">
-                    <button className="home-retour" onClick={() => setMode(null)}>← Retour</button>
+                    <button className="home-retour" onClick={retour}>← Retour</button>
 
                     {mode === 'hote' && serverIP && (
                         <div className="home-ip-info">

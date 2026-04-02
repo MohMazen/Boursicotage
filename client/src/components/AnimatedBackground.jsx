@@ -30,7 +30,7 @@ export default function AnimatedBackground() {
 
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // Effet de dégradé radial subtil en fond
             const gradient = ctx.createRadialGradient(
                 canvas.width / 2, canvas.height / 2, 0,

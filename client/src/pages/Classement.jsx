@@ -12,12 +12,17 @@ export default function Classement() {
     const [revealIndex, setRevealIndex] = useState(-1);
 
     // Données reçues via navigation state (émises par game:end)
-    const data = location.state || {};
-    const classement = useMemo(() => data.classement || [], [data.classement]);
-    const stats = data.stats || {};
-    const dureePartie = data.dureePartie || stats.dureePartie;
+    // Fallback sur localStorage pour compatibilité
+    const locationData = location.state || {};
+    const classement = useMemo(() => {
+        if (locationData.classement) return locationData.classement;
+        const stored = localStorage.getItem('classement');
+        return stored ? JSON.parse(stored) : [];
+    }, [locationData.classement]);
+    const stats = locationData.stats || {};
+    const dureePartie = locationData.dureePartie || stats.dureePartie;
 
-    // ── Animation de reveal progressif ── 
+    // ── Animation de reveal progressif ──
     useEffect(() => {
         if (classement.length === 0) return;
 
@@ -60,6 +65,13 @@ export default function Classement() {
         const mins = Math.floor(totalSecs / 60);
         const secs = totalSecs % 60;
         return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+    };
+
+    const handleRejouer = () => {
+        localStorage.removeItem('playerId');
+        localStorage.removeItem('pseudo');
+        localStorage.removeItem('classement');
+        navigate('/');
     };
 
     return (
@@ -127,7 +139,7 @@ export default function Classement() {
                     </div>
                 )}
 
-                <button className="classement-bouton" onClick={() => navigate('/')}>
+                <button className="classement-bouton" onClick={handleRejouer}>
                     🔄 Rejouer
                 </button>
             </div>

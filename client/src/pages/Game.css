@@ -1,4 +1,4 @@
-/* ── Page entière ── */
+
 .jeu-page {
     min-height: 100vh;
     background-color: #0d1117;
@@ -35,7 +35,7 @@
     50% { box-shadow: inset 0 0 80px rgba(255, 50, 50, 0.1); background-color: #110d0d; }
 }
 
-/* ── En-tête ── */
+
 .jeu-entete {
     display: flex;
     align-items: center;
@@ -148,7 +148,7 @@
     gap: 20px;
 }
 
-/* ── Carte générique ── */
+
 .jeu-carte {
     background-color: #161b22;
     border: 1px solid #30363d;
@@ -163,7 +163,7 @@
     letter-spacing: 1px;
 }
 
-/* ── Tableau du marché ── */
+
 .marche-tableau {
     width: 100%;
     border-collapse: collapse;
@@ -342,14 +342,14 @@
     font-weight: 700;
 }
 
-/* ── Milieu côte à côte ── */
+
 .jeu-milieu {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-/* ── Graphe ── */
+
 .graphe-selecteurs {
     display: flex;
     gap: 6px;

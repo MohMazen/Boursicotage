@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameProvider, useGameContext } from '../contexts/GameContext.jsx';
@@ -57,13 +57,12 @@ function GameUI() {
 
     const getHistoriqueFormate = (action) => {
         if (!action?.historique) return [];
-        // On ne garde que les 120 derniers points
         return action.historique.map((point, i, arr) => {
             const ageTicks = arr.length - 1 - i;
-            return { 
+            return {
                 time: ageTicks,
                 label: ageTicks === 0 ? 'Maintenant' : `-${ageTicks}s`,
-                prix: point.prix 
+                prix: point.prix
             };
         });
     };
@@ -92,7 +91,6 @@ function GameUI() {
     return (
         <div className={`jeu-page ${tensionClass}`}>
 
-            {/* ── En-tête ── */}
             <header className="jeu-entete">
                 <div className="jeu-entete-gauche">
                     <span className="jeu-logo">📈 Boursicotage</span>
@@ -114,7 +112,7 @@ function GameUI() {
             <div style={{ position: 'fixed', top: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', zIndex: 9999, pointerEvents: 'none' }}>
                 <AnimatePresence>
                     {message && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: -20, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9, y: -20 }}
@@ -129,14 +127,14 @@ function GameUI() {
                 {/* ── Insider Info (très visible) ── */}
                 <AnimatePresence>
                     {insiderInfo && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: 50, scale: 0.8 }}
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8, x: -50 }}
                             className="insider-info"
-                            style={{ 
-                                position: 'relative', margin: 0, background: 'rgba(255, 215, 0, 0.15)', 
-                                border: '2px solid #ffd700', borderRadius: '12px', padding: '12px 24px', 
+                            style={{
+                                position: 'relative', margin: 0, background: 'rgba(255, 215, 0, 0.15)',
+                                border: '2px solid #ffd700', borderRadius: '12px', padding: '12px 24px',
                                 boxShadow: '0 0 20px rgba(255, 215, 0, 0.4)', pointerEvents: 'auto'
                             }}
                         >
@@ -145,11 +143,11 @@ function GameUI() {
                     )}
                 </AnimatePresence>
             </div>
-            
+
             {/* ── Overlay Tension (Rouge clignotant progressif) ── */}
             <AnimatePresence>
                 {tensionLevel > 0 && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.1, tensionLevel * 0.15, 0.1] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
@@ -162,7 +160,7 @@ function GameUI() {
             {/* ── Contenu principal ── */}
             <div className="jeu-contenu">
 
-                {/* ── Graphe (haut) ── */}
+                {/* Graphe */}
                 <section className="jeu-carte">
                     <h2 className="jeu-carte-titre">📉 Historique des prix</h2>
                     <div className="graphe-selecteurs">
@@ -192,10 +190,10 @@ function GameUI() {
                                 </linearGradient>
                             </defs>
                             <CartesianGrid stroke="#21262d" strokeDasharray="3 3" vertical={false} />
-                            <XAxis 
-                                dataKey="time" 
-                                stroke="#8b949e" 
-                                tick={{ fontSize: 10 }} 
+                            <XAxis
+                                dataKey="time"
+                                stroke="#8b949e"
+                                tick={{ fontSize: 10 }}
                                 reversed={false}
                                 minTickGap={20}
                                 tickFormatter={(tick) => {
@@ -232,7 +230,7 @@ function GameUI() {
                     </ResponsiveContainer>
                 </section>
 
-                {/* ── Marché + Portefeuille (milieu, côte à côte) ── */}
+                {/* Marché + Portefeuille */}
                 <div className="jeu-milieu">
 
                     {/* Marché */}
@@ -403,12 +401,11 @@ function GameUI() {
                     </section>
                 </div>
 
-                {/* ── Actions spéciales (bas) ── */}
+                {/* Actions spéciales */}
                 <section className="jeu-carte">
                     <h2 className="jeu-carte-titre">⚡ Actions Spéciales</h2>
                     <div className="special-grille">
 
-                        {/* Rumeur positive */}
                         <div className="special-carte">
                             <h3 className="special-titre">📢 Rumeur Positive</h3>
                             <p className="special-description">Fait monter le prix d&apos;une action. Coûte 500 €.</p>
@@ -420,7 +417,6 @@ function GameUI() {
                             <button className="special-bouton special-bouton-vert" onClick={() => handleRumeur(rumeurAction, true)}>Lancer</button>
                         </div>
 
-                        {/* Rumeur négative */}
                         <div className="special-carte">
                             <h3 className="special-titre">📉 Rumeur Négative</h3>
                             <p className="special-description">Fait baisser le prix d&apos;une action. Coûte 500 €.</p>
@@ -432,7 +428,6 @@ function GameUI() {
                             <button className="special-bouton special-bouton-rouge" onClick={() => handleRumeur(rumeurAction, false)}>Lancer</button>
                         </div>
 
-                        {/* Geler un joueur */}
                         <div className="special-carte">
                             <h3 className="special-titre">🧊 Geler un Joueur</h3>
                             <p className="special-description">Bloque un adversaire pendant 45s. Coûte 1000 €.</p>

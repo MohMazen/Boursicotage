@@ -77,6 +77,11 @@
     border-color: #ffd93d;
 }
 
+.home-mode-reseau:hover {
+    border-color: #4d9fff;
+    box-shadow: 0 8px 30px rgba(77, 159, 255, 0.15);
+}
+
 .mode-icon {
     font-size: 2.4rem;
 }
@@ -197,7 +202,7 @@
     text-align: center;
 }
 
-/* ── Bouton ── */
+
 .home-bouton {
     background: linear-gradient(135deg, #00ff88, #00c9ff);
     color: #0d1117;

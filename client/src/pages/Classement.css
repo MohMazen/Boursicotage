@@ -15,6 +15,10 @@
     text-align: center;
     max-width: 700px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
 
 .classement-titre {
@@ -54,6 +58,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    width: 100%;
+    max-width: 420px;
     margin-bottom: 28px;
 }
 
@@ -97,6 +103,8 @@
 .podium-medaille {
     font-size: 1.8rem;
     flex-shrink: 0;
+    width: 40px;
+    text-align: center;
 }
 
 .podium-nom {
@@ -122,6 +130,7 @@
 .stats-section {
     margin-bottom: 28px;
     text-align: left;
+    width: 100%;
 }
 
 .stats-titre {
@@ -172,6 +181,10 @@
     color: #e6edf3;
     font-size: 0.82rem;
     font-weight: 600;
+}
+
+.stats-valeur.positif {
+    color: #00ff88;
 }
 
 /* ── Bouton rejouer ── */
