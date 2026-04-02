@@ -1,112 +1,48 @@
-
+/* ── Page Home ── */
 .home-page {
     min-height: 100vh;
-    background-color: #0d1117;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-
-.home-page > *:not(canvas) {
+    background-color: #0d1117;
+    color: #e6edf3;
     position: relative;
-    z-index: 1;
+    padding: 24px;
 }
-
 
 .home-titre {
-    font-size: 3rem;
-    color: #00ff88;
-    letter-spacing: 4px;
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00ff88, #00c9ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 8px;
+    text-align: center;
+    z-index: 1;
 }
 
 .home-sous-titre {
     color: #8b949e;
-    font-size: 1rem;
-    margin-bottom: 40px;
+    font-size: 1.1rem;
+    margin-bottom: 32px;
+    text-align: center;
+    z-index: 1;
 }
 
-
-.home-carte {
-    background-color: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 12px;
-    padding: 40px;
-    width: 360px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-
-.home-champ {
-    background-color: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    color: #e6edf3;
-    font-size: 1rem;
-    padding: 12px 16px;
-    outline: none;
-}
-
-.home-champ:focus {
-    border-color: #00ff88;
-}
-
-.home-champ::placeholder {
-    color: #484f58;
-}
-
-
-.home-erreur {
-    color: #ff4d4d;
-    font-size: 0.85rem;
-    margin: 0;
-}
-
-
-.home-bouton {
-    background-color: #00ff88;
-    color: #0d1117;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    padding: 12px;
-    cursor: pointer;
-}
-
-.home-bouton:hover {
-    background-color: #00cc6a;
-}
-
-.home-bouton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-
-.home-retour {
-    background: none;
-    border: none;
-    color: #8b949e;
-    cursor: pointer;
-    font-size: 0.85rem;
-    text-align: left;
-    padding: 0;
-}
-
-.home-retour:hover {
-    color: #00ff88;
-}
-
-
+/* ── Mode Selection ── */
 .home-mode-selection {
     display: flex;
-    flex-direction: row;
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: stretch;
     gap: 20px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: auto !important;
+    max-width: 1000px !important;
 }
 
 .home-mode-bouton {
@@ -117,19 +53,28 @@
     padding: 28px 36px;
     border-radius: 16px;
     cursor: pointer;
-    width: 200px;
+    transition: all 0.3s ease;
+    width: 220px;
     border: 1px solid #30363d;
     background: rgba(22, 27, 34, 0.85);
-    transition: transform 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(12px);
 }
 
 .home-mode-bouton:hover {
     transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 255, 136, 0.15);
+}
+
+.home-mode-hote:hover {
+    border-color: #00ff88;
+}
+
+.home-mode-rejoindre:hover {
+    border-color: #00c9ff;
 }
 
 .home-mode-local:hover {
-    border-color: #00ff88;
-    box-shadow: 0 8px 30px rgba(0, 255, 136, 0.15);
+    border-color: #ffd93d;
 }
 
 .home-mode-reseau:hover {
@@ -151,4 +96,132 @@
     font-size: 0.78rem;
     color: #8b949e;
     text-align: center;
+}
+
+/* ── Carte de connexion ── */
+.home-carte {
+    background: rgba(22, 27, 34, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 420px;
+    z-index: 1;
+}
+
+.home-retour {
+    background: none;
+    border: none;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-align: left;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.home-retour:hover {
+    color: #00ff88;
+}
+
+/* ── IP Info (hôte) ── */
+.home-ip-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 12px;
+}
+
+.home-ip-label {
+    color: #8b949e;
+    font-size: 0.85rem;
+    margin: 0;
+    text-align: center;
+}
+
+.home-ip-value {
+    color: #00ff88;
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.home-qr {
+    padding: 12px;
+    background: rgba(13, 17, 23, 0.7);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Input IP ── */
+.home-ip-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* ── Champs ── */
+.home-champ {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #e6edf3;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.home-champ:focus {
+    border-color: #00ff88;
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.home-champ::placeholder {
+    color: #484f58;
+}
+
+.home-erreur {
+    color: #ff4d4d;
+    font-size: 0.85rem;
+    margin: 0;
+    text-align: center;
+}
+
+
+.home-bouton {
+    background: linear-gradient(135deg, #00ff88, #00c9ff);
+    color: #0d1117;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+}
+
+.home-bouton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+}
+
+.home-bouton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

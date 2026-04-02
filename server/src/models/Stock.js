@@ -1,55 +1,111 @@
+/**
+ * Stock — Modèle d'une action boursière (Version GBM)
+ * 
+ * Implémente le Mouvement Brownien Géométrique pour des courbes réalistes.
+ * Inclut un système de "warmup" pour simuler un historique au démarrage.
+ */
+
+function gaussianRandom() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
 class Stock {
-    constructor(id, nom, prixInitial, volatilite = 'moyenne') {
-        this.id = id;
-        this.nom = nom;
-        this.prix = prixInitial;
-        this.prixInitial = prixInitial;
-        this.volatilite = volatilite; // 'faible' | 'moyenne' | 'elevee' — inconnu des joueurs
-        this.historique = [{ prix: prixInitial, timestamp: new Date().toLocaleTimeString('fr-FR') }];
+    constructor(id, nom, prixInitial, secteur, mu, sigma) {
+        this.id           = id;
+        this.nom          = nom;
+        this.prix         = prixInitial;
+        this.prixInitial  = prixInitial;
+        this.secteur      = secteur;
 
-        // Coefficients de variation selon volatilité (cachés aux joueurs)
-        this._coefficients = {
-            faible: 0.01,
-            moyenne: 0.03,
-            elevee: 0.07
-        };
-        this._tendance = 0; // positif = tendance haussière, négatif = tendance baissière, 0 = neutre
+        // ── Paramètres Secrets ───────────────────────────────────────────────
+        this._mu          = mu;        // Drift (tendance long terme)
+        this._sigma       = sigma;     // Volatilité de base
+        
+        // Calibrage : simule 6h de trading (21600s) avec des ticks de 2s
+        // Le facteur 8 permet de rendre les variations "jouables" visuellement
+        this._dt          = (2 / 21600) * 8; 
+
+        // Modificateurs dynamiques (Régimes de marché / Événements)
+        this._sigmaMultiplier = 1.0;
+        this._eventImpact     = 0;
+        this._rumeurImpact    = null;
+
+        // ── Historique & Warmup ──────────────────────────────────────────────
+        this.historique = []; 
+        
+        // Pré-chauffe silencieuse : simule 60 ticks (~2min) pour remplir le graphique
+        this._warmup(60);
     }
 
-    _getCoeff() {
-        return this._coefficients[this.volatilite] || 0.03;
+    /**
+     * Simule N ticks sans émettre d'événements pour remplir l'historique initial
+     */
+    _warmup(ticks) {
+        for (let i = 0; i < ticks; i++) {
+            this.fluctuer();
+        }
     }
 
-    // Fait fluctuer le prix aléatoirement, avec un éventuel événement externe
-    fluctuer(evenement = null) {
-        const coeff = this._getCoeff();
-        let variation = (Math.random() * 2 - 1) * coeff; // entre -coeff et +coeff
-        variation += this._tendance; // ajoute la tendance actuelle
-        // Si un événement affecte cette action, on applique son impact
-        if (evenement) variation += evenement.impact;
-        // Si une rumeur a été lancée sur cette action, on applique son impact
-        if (this._rumeurImpact) variation += this._rumeurImpact;
+    setSigmaMultiplier(multiplier) {
+        this._sigmaMultiplier = multiplier;
+    }
 
-        // Le prix ne peut pas tomber en dessous de 1
-        this.prix = Math.max(1, parseFloat((this.prix * (1 + variation)).toFixed(2)));
+    addEventImpact(impact) {
+        this._eventImpact += impact;
+    }
 
-        this.historique.push({ prix: this.prix, timestamp: new Date().toLocaleTimeString('fr-FR') });
+    /**
+     * Fait évoluer le prix selon la formule GBM : dS = S * (μ * dt + σ * dW)
+     */
+    fluctuer() {
+        const S     = this.prix;
+        const mu    = this._mu;
+        const sigma = this._sigma * this._sigmaMultiplier;
+        const dt    = this._dt;
+        const dW    = gaussianRandom() * Math.sqrt(dt);
 
-        // On conserve uniquement les 100 derniers points
-        if (this.historique.length > 100) {
+        // Calcul de la variation relative
+        let deltaPct = (mu * dt) + (sigma * dW);
+
+        // Ajout de l'impact des événements (décroissance gérée par le tick)
+        if (this._eventImpact !== 0) {
+            deltaPct += (this._eventImpact * dt * 10); // Amplify for visibility
+            this._eventImpact *= 0.85; // Decay
+            if (Math.abs(this._eventImpact) < 0.0001) this._eventImpact = 0;
+        }
+
+        if (this._rumeurImpact) {
+            deltaPct += (this._rumeurImpact * dt * 8);
+        }
+
+        let dS = S * deltaPct;
+
+        // Mise à jour du prix (minimum 1€)
+        this.prix = Math.max(1, parseFloat((S + dS).toFixed(2)));
+
+        // Ajout à l'historique circulaire (max 60 points pour le client)
+        this.historique.push({ 
+            prix: this.prix, 
+            timestamp: Date.now() 
+        });
+
+        if (this.historique.length > 60) {
             this.historique.shift();
         }
 
         return this.prix;
     }
 
-    // La volatilité n'est pas exposée au client (règle du jeu)
     toJSON() {
         return {
-            id: this.id,
-            nom: this.nom,
-            prix: this.prix,
-            historique: this.historique
+            id:         this.id,
+            nom:        this.nom,
+            prix:       this.prix,
+            secteur:    this.secteur,
+            historique: this.historique 
         };
     }
 }
