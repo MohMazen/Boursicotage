@@ -232,7 +232,7 @@
 .quantite-input:focus { border-color: #00ff88; }
 
 .quantite-btn {
-    background: #0d1117;
+    background: #0d1117 !important;
     border: 1px solid #30363d;
     border-radius: 4px;
     color: #8b949e;
@@ -263,26 +263,26 @@
 }
 
 .bouton-acheter {
-    background-color: #00ff8822;
+    background: #00ff8822 !important;
     color: #00ff88;
     border: 1px solid #00ff88;
 }
-.bouton-acheter:hover:not(:disabled) { background-color: #00ff8844; }
-.bouton-acheter:disabled { opacity: 0.35; cursor: not-allowed; }
+.bouton-acheter:hover:not(:disabled) { background: #00ff8844 !important; }
+.bouton-acheter:disabled { opacity: 0.35; cursor: not-allowed; background: transparent !important; border-color: #30363d !important; color: #8b949e !important; }
 
 .bouton-vendre {
-    background-color: #ff4d4d22;
+    background: #ff4d4d22 !important;
     color: #ff4d4d;
     border: 1px solid #ff4d4d;
 }
-.bouton-vendre:hover { background-color: #ff4d4d44; }
+.bouton-vendre:hover { background: #ff4d4d44 !important; }
 
 .bouton-short {
-    background-color: #c084fc22;
+    background: #c084fc22 !important;
     color: #c084fc;
     border: 1px solid #c084fc;
 }
-.bouton-short:hover { background-color: #c084fc44; }
+.bouton-short:hover { background: #c084fc44 !important; }
 
 .bouton-small { font-size: 0.72rem; padding: 3px 8px; }
 
@@ -358,31 +358,39 @@
 }
 
 .graphe-bouton {
-    background-color: #0d1117;
+    background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
     border: 1px solid #30363d;
-    border-radius: 8px;
+    border-radius: 12px;
     color: #8b949e;
-    padding: 6px 12px;
-    font-size: 0.78rem;
+    padding: 10px 16px;
+    font-size: 0.85rem;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    transition: all 0.2s;
+    gap: 4px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.graphe-bouton:hover { border-color: var(--action-color, #00ff88); color: #e6edf3; }
+.graphe-bouton:hover { 
+    border-color: var(--action-color, #00ff88); 
+    color: #e6edf3; 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
 
 .graphe-bouton-actif {
-    background-color: rgba(0, 255, 136, 0.08);
-    border-color: var(--action-color, #00ff88);
-    color: #e6edf3;
-    font-weight: bold;
+    background: linear-gradient(135deg, #21262d 0%, #161b22 100%);
+    border: 1px solid var(--action-color, #00ff88);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
 }
 
 .graphe-prix {
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: #e6edf3;
 }
@@ -427,17 +435,17 @@
     transition: all 0.2s;
 }
 
-.special-bouton-vert  { background-color: #00ff8822; color: #00ff88; border: 1px solid #00ff88; }
-.special-bouton-vert:hover  { background-color: #00ff8844; }
+.special-bouton-vert  { background: #00ff8822 !important; color: #00ff88; border: 1px solid #00ff88; }
+.special-bouton-vert:hover  { background: #00ff8844 !important; }
 
-.special-bouton-rouge { background-color: #ff4d4d22; color: #ff4d4d; border: 1px solid #ff4d4d; }
-.special-bouton-rouge:hover { background-color: #ff4d4d44; }
+.special-bouton-rouge { background: #ff4d4d22 !important; color: #ff4d4d; border: 1px solid #ff4d4d; }
+.special-bouton-rouge:hover { background: #ff4d4d44 !important; }
 
-.special-bouton-bleu  { background-color: #4d9fff22; color: #4d9fff; border: 1px solid #4d9fff; }
-.special-bouton-bleu:hover  { background-color: #4d9fff44; }
+.special-bouton-bleu  { background: #4d9fff22 !important; color: #4d9fff; border: 1px solid #4d9fff; }
+.special-bouton-bleu:hover  { background: #4d9fff44 !important; }
 
-.special-bouton-jaune { background-color: #ffd93d22; color: #ffd93d; border: 1px solid #ffd93d; }
-.special-bouton-jaune:hover { background-color: #ffd93d44; }
+.special-bouton-jaune { background: #ffd93d22 !important; color: #ffd93d; border: 1px solid #ffd93d; }
+.special-bouton-jaune:hover { background: #ffd93d44 !important; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {

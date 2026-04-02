@@ -21,7 +21,8 @@ export default function LocalMultiplayer() {
     
     // ── État Marché (Partagé) ───────────────────────────────────────────
     const [actions, setActions] = useState([]);
-    const [actionSelectionnee, setActionSelectionnee] = useState(1);
+    const [actionSelectionneeP1, setActionSelectionneeP1] = useState(1);
+    const [actionSelectionneeP2, setActionSelectionneeP2] = useState(1);
     const [regime, setRegime] = useState({ regime: 'normal', label: 'Marché normal' });
 
     // ── État Joueur 1 ──────────────────────────────────────────────────
@@ -157,17 +158,17 @@ export default function LocalMultiplayer() {
         }
     }, [p1.id, refreshData, setTempMessage]);
 
-    const specialAction = useCallback(async (playerId, type, data) => {
+    const specialAction = useCallback(async (playerId, type, data, targetActionId) => {
         try {
-            if (type === 'rumeur') await repandreRumeur(playerId, actionSelectionnee, data.positif);
-            if (type === 'insider') await insiderTrading(playerId, actionSelectionnee);
+            if (type === 'rumeur') await repandreRumeur(playerId, targetActionId, data.positif);
+            if (type === 'insider') await insiderTrading(playerId, targetActionId);
             if (type === 'geler')  await gelerJoueur(playerId, data.cibleId);
             refreshData();
         } catch (err) {
             const msg = err.response?.data?.message || 'Erreur action';
             setTempMessage(playerId === p1.id, `❌ ${msg}`);
         }
-    }, [p1.id, actionSelectionnee, refreshData, setTempMessage]);
+    }, [p1.id, refreshData, setTempMessage]);
 
     // ── Keyboard Shortcuts (Raccourcis duel) ──────────────────────────────
     useEffect(() => {
@@ -176,30 +177,32 @@ export default function LocalMultiplayer() {
             if (!p1.id || !p2.id) return;
             
             // ── J1 : GAUCHE ──
-            if (key === 'a') trade(p1.id, actionSelectionnee, 'achat');
-            if (key === 'e') trade(p1.id, actionSelectionnee, 'vente');
-            if (key === 'z') setActionSelectionnee(prev => (prev % actions.length) + 1);
-            if (key === 'q') specialAction(p1.id, 'rumeur', { positif: true });
-            if (key === 's') specialAction(p1.id, 'rumeur', { positif: false });
-            if (key === 'd') specialAction(p1.id, 'insider');
-            if (key === 'x') specialAction(p1.id, 'geler', { cibleId: p2.id });
+            if (key === 'a') trade(p1.id, actionSelectionneeP1, 'achat');
+            if (key === 'e') trade(p1.id, actionSelectionneeP1, 'vente');
+            if (key === 'z') setActionSelectionneeP1(prev => (prev % actions.length) + 1);
+            if (key === 'q') specialAction(p1.id, 'rumeur', { positif: true }, actionSelectionneeP1);
+            if (key === 's') specialAction(p1.id, 'rumeur', { positif: false }, actionSelectionneeP1);
+            if (key === 'd') specialAction(p1.id, 'insider', null, actionSelectionneeP1);
+            if (key === 'x') specialAction(p1.id, 'geler', { cibleId: p2.id }, actionSelectionneeP1);
 
             // ── J2 : DROITE ──
-            if (key === 'i') trade(p2.id, actionSelectionnee, 'achat');
-            if (key === 'p') trade(p2.id, actionSelectionnee, 'vente');
-            if (key === 'o') setActionSelectionnee(prev => (prev % actions.length) + 1);
-            if (key === 'k') specialAction(p2.id, 'rumeur', { positif: true });
-            if (key === 'l') specialAction(p2.id, 'rumeur', { positif: false });
-            if (key === 'm') specialAction(p2.id, 'insider');
-            if (key === 'n') specialAction(p2.id, 'geler', { cibleId: p1.id });
+            if (key === 'i') trade(p2.id, actionSelectionneeP2, 'achat');
+            if (key === 'p') trade(p2.id, actionSelectionneeP2, 'vente');
+            if (key === 'o') setActionSelectionneeP2(prev => (prev % actions.length) + 1);
+            if (key === 'k') specialAction(p2.id, 'rumeur', { positif: true }, actionSelectionneeP2);
+            if (key === 'l') specialAction(p2.id, 'rumeur', { positif: false }, actionSelectionneeP2);
+            if (key === 'm') specialAction(p2.id, 'insider', null, actionSelectionneeP2);
+            if (key === 'n') specialAction(p2.id, 'geler', { cibleId: p1.id }, actionSelectionneeP2);
         };
 
         window.addEventListener('keydown', handleKeys);
         return () => window.removeEventListener('keydown', handleKeys);
-    }, [p1.id, p2.id, actionSelectionnee, actions.length, specialAction, trade]);
+    }, [p1.id, p2.id, actionSelectionneeP1, actionSelectionneeP2, actions.length, specialAction, trade]);
 
     // ── Calculs Formats Graphe ────────────────────────────────────────────
-    const actionCourante = actions.find(a => a.id === actionSelectionnee);
+    const actionCouranteP1 = actions.find(a => a.id === actionSelectionneeP1);
+    const actionCouranteP2 = actions.find(a => a.id === actionSelectionneeP2);
+    
     const getHistoriqueFormate = (action) => {
         if (!action?.historique) return [];
         return action.historique.map((point, i, arr) => ({
@@ -226,28 +229,7 @@ export default function LocalMultiplayer() {
                 </div>
             </header>
 
-            {/* Zone Graphique Commune (Milieu) */}
-            <div className="shared-market-zone">
-                <ResponsiveContainer width="100%" height={260}>
-                    <AreaChart data={getHistoriqueFormate(actionCourante)}>
-                        <defs>
-                            <linearGradient id="colorDuel" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#00ff88" stopOpacity={0.4}/>
-                                <stop offset="95%" stopColor="#00ff88" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid stroke="#21262d" strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="time" hide reversed={false} />
-                        <YAxis stroke="#8b949e" domain={['auto', 'auto']} orientation="right" width={40} />
-                        <Area type="linear" dataKey="prix" stroke="#00ff88" strokeWidth={3} fillOpacity={1} fill="url(#colorDuel)" />
-                    </AreaChart>
-                </ResponsiveContainer>
-                <div className="shared-action-name">
-                   📈 {actionCourante?.nom || 'Chargement...'} : {actionCourante?.prix.toFixed(2)} €
-                </div>
-            </div>
-
-            {/* Split Screen Bottom */}
+            {/* Split Screen */}
             <div className="split-view">
                 
                 {/* Joueur 1 (Gauche) */}
@@ -257,15 +239,43 @@ export default function LocalMultiplayer() {
                         <div className="p-wealth">📊 {p1.patrimoine.toFixed(0)} €</div>
                     </div>
                     <div className="p-cash">💰 Cash: {p1.solde.toFixed(2)} €</div>
-                    {p1Message && <div className="jeu-message" style={{position: 'static', margin: '10px 0', fontSize: '0.9rem'}}>{p1Message}</div>}
+                    {p1Message && <div className="jeu-message" style={{position: 'static', margin: '4px 0', fontSize: '0.9rem'}}>{p1Message}</div>}
                     
-                    <div className="p-shortcuts">
-                        <span><strong>(A)</strong> Achat</span>
-                        <span><strong>(E)</strong> Vente</span>
-                        <span><strong>(Z)</strong> Stock</span>
-                        <span><strong>(Q/S)</strong> +/-</span>
-                        <span><strong>(D)</strong> Info</span>
-                        <span><strong>(X)</strong> GEL</span>
+                    {/* Graphique Indépendant P1 */}
+                    <div className="player-market-zone">
+                        <ResponsiveContainer width="100%" height={160}>
+                            <AreaChart data={getHistoriqueFormate(actionCouranteP1)}>
+                                <defs>
+                                    <linearGradient id="colorDuel1" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#00ff88" stopOpacity={0.4}/>
+                                        <stop offset="95%" stopColor="#00ff88" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid stroke="#21262d" strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="time" hide reversed={false} />
+                                <YAxis stroke="#8b949e" domain={['auto', 'auto']} orientation="right" width={40} />
+                                <Area type="linear" dataKey="prix" stroke="#00ff88" strokeWidth={2} fillOpacity={1} fill="url(#colorDuel1)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                        <div className="shared-action-name" style={{fontSize: '1rem', marginTop: '5px'}}>
+                           📈 {actionCouranteP1?.nom || 'Chargement...'} : {actionCouranteP1?.prix.toFixed(2)} €
+                        </div>
+                    </div>
+
+                    <div className="p-action-buttons">
+                        <button className="action-btn cycle-btn" onClick={() => setActionSelectionneeP1(prev => (prev % actions.length) + 1)}>[Z] Changer l'Action</button>
+                        <div className="trade-btns">
+                            <button className="action-btn buy-btn" onClick={() => trade(p1.id, actionSelectionneeP1, 'achat')}>[A] Acheter 1</button>
+                            <button className="action-btn sell-btn" onClick={() => trade(p1.id, actionSelectionneeP1, 'vente')}>[E] Vendre 1</button>
+                        </div>
+                        <div className="special-btns">
+                            <button className="action-btn rumor-up-btn" onClick={() => specialAction(p1.id, 'rumeur', { positif: true }, actionSelectionneeP1)}>[Q] Rumeur + (500€)</button>
+                            <button className="action-btn rumor-down-btn" onClick={() => specialAction(p1.id, 'rumeur', { positif: false }, actionSelectionneeP1)}>[S] Rumeur - (500€)</button>
+                        </div>
+                        <div className="trade-btns">
+                            <button className="action-btn insider-btn" onClick={() => specialAction(p1.id, 'insider', null, actionSelectionneeP1)}>[D] Insider (1500€)</button>
+                            <button className="action-btn freeze-btn" onClick={() => specialAction(p1.id, 'geler', { cibleId: p2.id }, actionSelectionneeP1)}>[X] Geler Adv (1000€)</button>
+                        </div>
                     </div>
 
                     <div className="p-portfolio">
@@ -287,15 +297,43 @@ export default function LocalMultiplayer() {
                         <div className="p-wealth">📊 {p2.patrimoine.toFixed(0)} €</div>
                     </div>
                     <div className="p-cash">💰 Cash: {p2.solde.toFixed(2)} €</div>
-                    {p2Message && <div className="jeu-message" style={{position: 'static', margin: '10px 0', fontSize: '0.9rem'}}>{p2Message}</div>}
+                    {p2Message && <div className="jeu-message" style={{position: 'static', margin: '4px 0', fontSize: '0.9rem'}}>{p2Message}</div>}
 
-                    <div className="p-shortcuts">
-                        <span><strong>(I)</strong> Achat</span>
-                        <span><strong>(P)</strong> Vente</span>
-                        <span><strong>(O)</strong> Stock</span>
-                        <span><strong>(K/L)</strong> +/-</span>
-                        <span><strong>(M)</strong> Info</span>
-                        <span><strong>(N)</strong> GEL</span>
+                    {/* Graphique Indépendant P2 */}
+                    <div className="player-market-zone">
+                        <ResponsiveContainer width="100%" height={160}>
+                            <AreaChart data={getHistoriqueFormate(actionCouranteP2)}>
+                                <defs>
+                                    <linearGradient id="colorDuel2" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#00c9ff" stopOpacity={0.4}/>
+                                        <stop offset="95%" stopColor="#00c9ff" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid stroke="#21262d" strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="time" hide reversed={false} />
+                                <YAxis stroke="#8b949e" domain={['auto', 'auto']} orientation="right" width={40} />
+                                <Area type="linear" dataKey="prix" stroke="#00c9ff" strokeWidth={2} fillOpacity={1} fill="url(#colorDuel2)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                        <div className="shared-action-name" style={{fontSize: '1rem', marginTop: '5px', color: '#00c9ff'}}>
+                           📈 {actionCouranteP2?.nom || 'Chargement...'} : {actionCouranteP2?.prix.toFixed(2)} €
+                        </div>
+                    </div>
+
+                    <div className="p-action-buttons">
+                        <button className="action-btn cycle-btn" onClick={() => setActionSelectionneeP2(prev => (prev % actions.length) + 1)}>[O] Changer l'Action</button>
+                        <div className="trade-btns">
+                            <button className="action-btn buy-btn" onClick={() => trade(p2.id, actionSelectionneeP2, 'achat')}>[I] Acheter 1</button>
+                            <button className="action-btn sell-btn" onClick={() => trade(p2.id, actionSelectionneeP2, 'vente')}>[P] Vendre 1</button>
+                        </div>
+                        <div className="special-btns">
+                            <button className="action-btn rumor-up-btn" onClick={() => specialAction(p2.id, 'rumeur', { positif: true }, actionSelectionneeP2)}>[K] Rumeur + (500€)</button>
+                            <button className="action-btn rumor-down-btn" onClick={() => specialAction(p2.id, 'rumeur', { positif: false }, actionSelectionneeP2)}>[L] Rumeur - (500€)</button>
+                        </div>
+                        <div className="trade-btns">
+                            <button className="action-btn insider-btn" onClick={() => specialAction(p2.id, 'insider', null, actionSelectionneeP2)}>[M] Insider (1500€)</button>
+                            <button className="action-btn freeze-btn" onClick={() => specialAction(p2.id, 'geler', { cibleId: p1.id }, actionSelectionneeP2)}>[N] Geler Adv (1000€)</button>
+                        </div>
                     </div>
 
                     <div className="p-portfolio">

@@ -160,7 +160,7 @@ export const GameProvider = ({ children, pseudo, playerId }) => {
     const handleQuitter = async () => {
         try {
             await quitterPartie(playerId);
-            navigate('/');
+            // La redirection vers le classement se fera via l'événement socket 'game:end'
         } catch (err) { console.error(err); }
     };
 

@@ -24,8 +24,8 @@ export const ajouterJoueur = (req, res) => {
         });
     }
 
-    // Reset avant de créer le joueur si partie terminée
-    if (game.finished) {
+    // Reset avant de créer le joueur si partie terminée ou déjà démarrée
+    if (game.finished || game.started) {
         game.preparerNouvellePartie();
     }
 
@@ -66,9 +66,22 @@ export const terminerPartie = (req, res) => {
 
 export const quitterPartie = (req, res) => {
     const { playerId } = req.body;
-    if (playerId) {
-        game.removePlayer(parseInt(playerId));
+    const pid = parseInt(playerId);
+
+    if (pid && game.started) {
+        // En pleine partie : le joueur abandonne
+        const player = game.players.find(p => p.id === pid);
+        if (player) {
+            // Le forcer à être à 0 pour finir dernier dans le ladder
+            player.solde = -999999;
+            // Terminer la partie pour tout le monde
+            game.terminer();
+        }
+    } else if (pid) {
+        // Dans le lobby : on le retire simplement
+        game.removePlayer(pid);
     }
+    
     const io = game.market._io;
     if (io) {
         io.emit('lobby:update', { players: game.getPlayers() });
