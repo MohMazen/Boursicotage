@@ -235,13 +235,13 @@ class Game {
         setTimeout(() => {
             cible.estGele = false;
             console.log(`[GAME] Joueur ${cible.name} dégel automatique`);
-        }, 45000);
+        }, 15000);
 
-        console.log(`[GAME] ${player.name} a gelé ${cible.name} pendant 45s`);
+        console.log(`[GAME] ${player.name} a gelé ${cible.name} pendant 15s`);
 
         return {
             success: true,
-            message: `${cible.name} est gelé pendant 45 secondes`,
+            message: `${cible.name} est gelé pendant 15 secondes`,
             solde: player.getSolde(),
             gelsRestants: player.gelsRestants
         };

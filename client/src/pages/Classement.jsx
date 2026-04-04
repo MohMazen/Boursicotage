@@ -81,6 +81,7 @@ export default function Classement() {
             <div className="classement-contenu">
                 <h1 className="classement-titre">🏁 Fin de Partie</h1>
                 <p className="classement-sous-titre">Classement final</p>
+            
 
                 {/* ── Durée révélée ── */}
                 {dureePartie && (

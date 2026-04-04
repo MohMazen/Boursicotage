@@ -9,7 +9,7 @@ import {
     ajouterJoueur, acheterAction, vendreAction, 
     getPortefeuille, demarrerPartie,
     repandreRumeur, insiderTrading, gelerJoueur,
-    resetPartie
+    resetPartie, terminerPartie
 } from '../services/api.js';
 import AnimatedBackground     from '../components/AnimatedBackground.jsx';
 import './Game.css'; // On réutilise les styles de base du jeu
@@ -212,8 +212,14 @@ export default function LocalMultiplayer() {
     };
 
     const handleQuitterDuel = async () => {
-        try { await resetPartie(); } catch (e) { console.error(e); }
-        navigate('/');
+        try { 
+            await terminerPartie(); 
+            // L'événement socket 'game:end' se chargera de nous rediriger vers /classement.
+        } catch (e) { 
+            console.error(e); 
+            // En cas d'erreur de connexion, forcer le retour à l'accueil
+            navigate('/');
+        }
     };
 
     return (
