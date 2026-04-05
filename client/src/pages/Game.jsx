@@ -430,7 +430,7 @@ function GameUI() {
 
                         <div className="special-carte">
                             <h3 className="special-titre">🧊 Geler un Joueur</h3>
-                            <p className="special-description">Bloque un adversaire pendant 30s. Coûte 1000 €.</p>
+                            <p className="special-description">Bloque un adversaire pendant 15s. Coûte 1000 €.</p>
                             <select
                                 className="special-selection"
                                 value={gelerCible}
