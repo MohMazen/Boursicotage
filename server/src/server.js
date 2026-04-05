@@ -20,11 +20,36 @@ const PORT = process.env.PORT || 3000;
 // ── Détection de l'IP locale ─────────────────────────────────────────────────
 function getLocalIP() {
     const nets = os.networkInterfaces();
+
+    // Interfaces prioritaires (Wi-Fi et Ethernet physique)
+    const preferred = ['eth0', 'en0', 'en1', 'wlan0', 'Wi-Fi', 'Ethernet'];
+
+    // Cherche d'abord dans les interfaces prioritaires
+    for (const name of preferred) {
+        const iface = nets[name];
+        if (!iface) continue;
+        for (const net of iface) {
+            if (net.family === 'IPv4' && !net.internal) return net.address;
+        }
+    }
+
+    //  Fallback : toute interface IPv4 non-interne dont le nom ne contient pas
+    //    de marqueurs connus de VPN/virtuels
+    const excluded = /vpn|veth|docker|vmware|vmnet|vbox|tun|tap|lo|utun|awdl|bridge/i;
+    for (const name of Object.keys(nets)) {
+        if (excluded.test(name)) continue;
+        for (const net of nets[name]) {
+            if (net.family === 'IPv4' && !net.internal) return net.address;
+        }
+    }
+
+    //  Dernier recours
     for (const name of Object.keys(nets)) {
         for (const net of nets[name]) {
             if (net.family === 'IPv4' && !net.internal) return net.address;
         }
     }
+
     return 'localhost';
 }
 const LOCAL_IP = getLocalIP();
