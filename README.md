@@ -6,7 +6,7 @@
 
 ## 📊 Vue d'ensemble
 
-**Boursicotage** est une application web de simulation boursière temps réel permettant à 2-8 joueurs de s'affronter dans une course à l'enrichissement. Achats/ventes d'actions, fluctuations de marché, événements aléatoires : qui sera le meilleur trader ?
+**Boursicotage** est une application web de simulation boursière temps réel permettant à 2 joueurs ou plus de s'affronter dans une course à l'enrichissement. Achats/ventes d'actions, fluctuations de marché, événements aléatoires : qui sera le meilleur trader ?
 
 ### 🎯 Objectifs pédagogiques
 
@@ -99,11 +99,11 @@ npm start
 ### MVP (Version 1.0)
 
 - ✅ **Lobby multijoueur** : Créer/rejoindre une partie
-- ✅ **Marché temps réel** : 10 actions avec fluctuations automatiques
+- ✅ **Marché temps réel** : 5 actions avec fluctuations automatiques
 - ✅ **Transactions** : Achat/vente d'actions
 - ✅ **Portefeuille** : Visualisation du capital et des positions
 - ✅ **Classement** : Leaderboard en direct
-- ✅ **Timer de partie** : Durée configurable (5-15 minutes)
+- ✅ **Timer de partie** : Durée configurable (3-8 minutes)
 
 ### Extensions futures
 
@@ -116,13 +116,12 @@ npm start
 ---
 
 ## 👥 Équipe de développement
-
 | Rôle | Nom | Responsabilités |
 |------|-----|----------------|
 | **Lead Fullstack** | MohMazen | Architecture, code review, intégration |
-| **Dev Frontend** | TBD | Interface React, composants UI |
-| **Dev Backend 1** | TBD | API REST, authentification |
-| **Dev Backend 2** | TBD | Moteur de jeu, WebSockets |
+| **Dev Frontend** | mohand3104 | Interface React, composants UI |
+| **Dev Backend 1** | OumouBailoBarry | Modèle Player, routes API REST, authentification, logique de jeu |
+| **Dev Backend 2** | aniaidj | Moteur de jeu, WebSockets |
 
 ---
 
