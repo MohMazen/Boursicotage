@@ -8,24 +8,25 @@ export const ajouterJoueur = (req, res) => {
 
     const trimmedName = name.trim();
 
-    // ── CORRECTION : réinitialiser la partie AVANT tout, si elle est terminée ──
-    // Cela vide game.players, donc plus aucun "existingPlayer" fantôme de la
-    // partie précédente ne pourra être retourné avec ses vieux soldes.
-    if (game.finished || game.started) {
-        game.preparerNouvellePartie();
-    }
-
-    // Vérifier si le joueur existe déjà dans la partie EN COURS (lobby actif)
+    // Vérifier si le joueur existe déjà
     const existingPlayer = game.players.find(p => p.name.toLowerCase() === trimmedName.toLowerCase());
-
+    
     if (existingPlayer) {
+        // Sécurité : si le token envoyé ne correspond pas, c'est quelqu'un d'autre qui tente de voler le pseudo
         if (existingPlayer.sessionToken && existingPlayer.sessionToken !== sessionToken) {
             return res.status(403).json({ message: "Ce pseudo est déjà utilisé !" });
         }
-        return res.json({
-            message: "Session récupérée",
-            joueur: { id: existingPlayer.id, name: existingPlayer.name }
+        
+        // Si c'est le bon token, on récupère la session existante (refresh ou double-mount)
+        return res.json({ 
+            message: "Session récupérée", 
+            joueur: { id: existingPlayer.id, name: existingPlayer.name } 
         });
+    }
+
+    // Reset avant de créer le joueur si partie terminée ou déjà démarrée
+    if (game.finished || game.started) {
+        game.preparerNouvellePartie();
     }
 
     const player  = new Player(trimmedName, sessionToken);
@@ -34,26 +35,21 @@ export const ajouterJoueur = (req, res) => {
     if (!success)
         return res.status(400).json({ message: "Impossible d'ajouter le joueur (partie déjà démarrée)" });
 
-    // Notifier le lobby de la mise à jour
-    const io = game.market._io;
-    if (io) {
-        io.emit('lobby:update', { players: game.getPlayers() });
-    }
-
     res.json({ message: "Joueur ajouté", joueur: { id: player.id, name: player.name } });
 };
 
 export const demarrerPartie = (req, res) => {
-    // ── CORRECTION : on supprime le garde-fou sur game.finished ─────────────
-    // La protection est déjà dans game.demarrer() qui vérifie players.length < 2
-    // L'ancien guard bloquait le redémarrage après une partie terminée
+    if (game.finished) {
+        return res.status(400).json({ message: "Partie terminée — inscrivez les joueurs avant de redémarrer" });
+    }
+
     const result = game.demarrer();
     if (!result.success) return res.status(400).json({ message: result.message });
     res.json({ message: "Partie démarrée" });
 };
 
-export const getEtatPartie  = (req, res) => res.json(game.getGameState());
-export const getTempsEcoule = (req, res) => res.json({ tempsEcoule: game.getTempsEcoule() });
+export const getEtatPartie    = (req, res) => res.json(game.getGameState());
+export const getTempsEcoule   = (req, res) => res.json({ tempsEcoule: game.getTempsEcoule() });
 
 export const getClassement = (req, res) => {
     if (!game.verifierFinPartie())
@@ -73,26 +69,19 @@ export const quitterPartie = (req, res) => {
     const pid = parseInt(playerId);
 
     if (pid && game.started) {
-        // En pleine partie : liquider proprement plutôt que solde = -999999
+        // En pleine partie : le joueur abandonne
         const player = game.players.find(p => p.id === pid);
         if (player) {
-            // Vendre toutes ses actions au prix actuel avant de terminer
-            for (const actionId in player.portefeuille) {
-                const ligne = player.portefeuille[actionId];
-                const action = game.market.getStock(parseInt(actionId));
-                if (action && ligne.quantite > 0) {
-                    player.vendreAction(action, ligne.quantite);
-                }
-            }
-            // Mettre le solde à 0 pour finir dernier sans afficher -999999
-            player.solde = 0;
+            // Le forcer à être à 0 pour finir dernier dans le ladder
+            player.solde = -999999;
+            // Terminer la partie pour tout le monde
             game.terminer();
         }
     } else if (pid) {
-        // Dans le lobby : retirer simplement
+        // Dans le lobby : on le retire simplement
         game.removePlayer(pid);
     }
-
+    
     const io = game.market._io;
     if (io) {
         io.emit('lobby:update', { players: game.getPlayers() });
