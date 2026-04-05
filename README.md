@@ -118,10 +118,10 @@ npm start
 ## 👥 Équipe de développement
 | Rôle | Nom | Responsabilités |
 |------|-----|----------------|
-| **Lead Fullstack** | MohMazen | Architecture, code review, intégration |
-| **Dev Frontend** | mohand3104 | Interface React, composants UI |
-| **Dev Backend 1** | OumouBailoBarry | Modèle Player, routes API REST, authentification, logique de jeu |
-| **Dev Backend 2** | aniaidj | Moteur de jeu, WebSockets |
+| **Lead Fullstack** | CHAABANE Mohamed Mazen | Architecture, code review, intégration |
+| **Dev Frontend** | MAZNI Mohand Ou Belkacem | Interface React, composants UI |
+| **Dev Backend 1** | BARRY Oumou Bailo | Modèle Player, routes API REST, authentification, logique de jeu |
+| **Dev Backend 2** | IDJOURDIKAN Ania  | Moteur de jeu, WebSockets |
 
 ---
 
